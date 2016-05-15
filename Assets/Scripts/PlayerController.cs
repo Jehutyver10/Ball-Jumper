@@ -6,7 +6,7 @@ using System.Linq;
 public class PlayerController: MonoBehaviour {
 
 	private GameObject target;
-	private bool isLocked;
+	private bool isLocked, canShoot, isMoving;
 	private Rigidbody rb;
 	private CameraFollow cam;
 	private Animator anim;
@@ -17,10 +17,9 @@ public class PlayerController: MonoBehaviour {
 
 	public float speed, newLockLimit = 1, rotationSpeed =1;
 	public float boostMultiplier;
-	public float strength;
 //	private bool jumped = false;
 	public float newY, lockLimit = 2;
-	public bool isBoosted, canShoot;
+	public bool isBoosted;
 
 	void Start (){
 		anim = GetComponent<Animator>();
@@ -44,26 +43,39 @@ public class PlayerController: MonoBehaviour {
 
 
 	void FixedUpdate () {
+		ControlPlayer();
+
+	}
+
+
+	void ControlPlayer(){
 		Move();
+		RightStick();
+		Boost();
 		LockOn();
 		cam.AdjustDamping();
 		Shoot();
 
 	}
 
-
 	void Move(){
-		MoveHorizontal();
-		MoveVertical();
-		RightStick();
-		Boost();
-	}
+		float moveY = 0;
+		if(Input.GetButton("Altitude")){
+			moveY = Input.GetAxis("Altitude");
+		}
+		float moveX = Input.GetAxis ("Horizontal");
+		float moveZ = Input.GetAxis ("Vertical");
+		Vector3 movement = new Vector3 (moveX, moveY, moveZ) ;
+		rb.AddRelativeForce(movement * speed);
+		transform.rotation = Quaternion.Euler (0, newY, 0);
 
-	void MoveHorizontal(){
-		float moveHorizontal = Input.GetAxis ("Horizontal");
-		float moveVertical = Input.GetAxis ("Vertical") ;
-		Vector3 movement = new Vector3 (moveHorizontal, 0, moveVertical) ;
-		rb.AddRelativeForce (movement*speed);
+		//check for any movement
+		if(moveX != 0 || moveZ != 0 || moveY != 0){
+			isMoving = true;
+		} else{//not moving
+			isMoving = false;
+		}
+
 
 	}
 	void RightStick(){
@@ -87,7 +99,7 @@ public class PlayerController: MonoBehaviour {
 	void Boost(){
 		float boostCheck = Mathf.Round(Input.GetAxisRaw("Boost"));
 		if (boostCheck > 0){
-			if(!isBoosted){
+			if(!isBoosted && isMoving){
 				cam.anim.SetTrigger("Boost");
 				isBoosted = true;
 			}
@@ -96,17 +108,6 @@ public class PlayerController: MonoBehaviour {
 			isBoosted = false;
 			speed = normalSpeed;
 		}
-	}
-
-	void MoveVertical(){
-		transform.rotation = Quaternion.Euler (0, newY, 0);
-		if (Input.GetButton("Jump")) {// determines if ball is in midair
-			rb.AddForce (0f, Input.GetAxis("Jump")* strength, 0, ForceMode.Impulse);
-		}
-		else if(Input.GetButton("Descend")) {
-			rb.AddForce(0f,  -Input.GetAxis("Descend")* strength, 0, ForceMode.Impulse); 
-		}
-
 	}
 
 	void LockOn(){
