@@ -13,12 +13,10 @@ public class PlayerController: MonoBehaviour {
 	private float boostSpeed, normalSpeed, checkLock, lockOffTime,
 	newLockTime; 
 	private int targeter;
-	private Vector3 bombPos;
 
 	public GameObject bullet;
 	public float speed, newLockLimit = 1, rotationSpeed =1;
 	public float boostMultiplier;
-//	private bool jumped = false;
 	public float newY, lockLimit = 2;
 	public bool isBoosted;
 
@@ -246,13 +244,12 @@ public class PlayerController: MonoBehaviour {
 		begunCharge = true;
 	}
 	void ShootBomb(){
+		
 		Debug.Log("launching");
-		Quaternion q = Quaternion.FromToRotation(Vector3.up, transform.forward);
-		bomb.transform.rotation = q * bomb.transform.rotation;
-		bomb.transform.Translate(Vector3.forward);
-		//bomb.GetComponent<Rigidbody>().AddForce(bomb.transform.forward * bomb.GetComponent<Projectile>().speed);
-
-
+	//	Quaternion q = Quaternion.FromToRotation(Vector3.up, transform.forward);
+	//	bomb.transform.rotation = q * bomb.transform.rotation;
+		bomb.GetComponent<Rigidbody>().AddRelativeForce(bomb.transform.forward * bomb.GetComponent<Projectile>().speed, ForceMode.Impulse);
+		print(bomb.GetComponent<Rigidbody>().velocity);
 	}
 	void ShootBullet(){
 		GameObject shot;
