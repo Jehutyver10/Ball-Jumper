@@ -5,8 +5,8 @@ using System.Linq;
 
 public class PlayerController: MonoBehaviour {
 
-	private GameObject target, bomb;
-	private bool isLocked, canShoot, moving, charging, begunCharge = false;
+	private GameObject target;
+	private bool isLocked, moving, charging;
 	private Rigidbody rb;
 	private CameraFollow cam;
 	private Animator anim;
@@ -14,16 +14,12 @@ public class PlayerController: MonoBehaviour {
 	newLockTime; 
 	private int targeter;
 
-	public GameObject bullet;
+	public GameObject bullet, bomb;
 	public float speed, newLockLimit = 1, rotationSpeed =1;
 	public float boostMultiplier;
 	public float newY, lockLimit = 2;
-	public bool isBoosted;
+	public bool isBoosted, canShoot;
 
-	void Awake(){
-		bomb = GetComponentInChildren<Bomb>().gameObject;
-		bomb.SetActive(false);
-	}
 	void Start (){
 		anim = GetComponent<Animator>();
 		targeter = 0;
@@ -219,6 +215,9 @@ public class PlayerController: MonoBehaviour {
 		}
 		return target;
 	}
+	void AllowShoot(){
+		canShoot = true;
+	}
 
 	void Shoot(){
 		if(Input.GetButton("Shoot") && canShoot){
@@ -226,34 +225,20 @@ public class PlayerController: MonoBehaviour {
 			if(!isBoosted && !charging){//stationary shot
 				anim.SetTrigger("Shoot Bullet");
 			} else if(charging){
-				bomb.SetActive(true);
-				anim.SetTrigger("Charge Bomb");
+				anim.SetTrigger("Shoot Bomb");
 			}
 		}
-
-		if(Input.GetButtonUp("Shoot") && begunCharge){
-			anim.SetTrigger("Shoot Bomb");
-		}
 	}
 
-	void AllowShoot(){
-		canShoot = true;
-	}
-
-	void PrepareToFireBomb(){
-		begunCharge = true;
-	}
 	void ShootBomb(){
-		
-		Debug.Log("launching");
-	//	Quaternion q = Quaternion.FromToRotation(Vector3.up, transform.forward);
-	//	bomb.transform.rotation = q * bomb.transform.rotation;
-		bomb.GetComponent<Rigidbody>().AddRelativeForce(bomb.transform.forward * bomb.GetComponent<Projectile>().speed, ForceMode.Impulse);
-		print(bomb.GetComponent<Rigidbody>().velocity);
+		GameObject shot = Instantiate(bomb, transform.position  + Vector3.forward,
+		Quaternion.identity) as GameObject;
+		shot.transform.parent = gameObject.transform;
+		shot.GetComponent<Animator>().SetTrigger("Rise");
 	}
+
 	void ShootBullet(){
-		GameObject shot;
-		shot = Instantiate(bullet, transform.position + transform.forward, Quaternion.identity) as GameObject;
+		GameObject shot = Instantiate(bullet, transform.position + transform.forward, Quaternion.identity) as GameObject;
 		shot.transform.parent = GameObject.Find("Projectiles").transform;
 		Quaternion q = Quaternion.FromToRotation(Vector3.up, transform.forward);
 		shot.transform.rotation = q * shot.transform.rotation;

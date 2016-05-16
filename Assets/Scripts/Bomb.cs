@@ -5,29 +5,31 @@ using System.Collections;
 public class Bomb : MonoBehaviour {
 	// Use this for initialization
 
-	public bool collided = false;
-	Vector3 pos;
-	Quaternion rot;
-	Vector3 sca;
-	void Awake () {
-		pos = transform.localPosition;
-		rot = transform.localRotation;
-		sca = transform.localScale;
-		Physics.IgnoreCollision(FindObjectOfType<PlayerController>().GetComponent<Collider>(), 
-		GetComponent<Collider>()); 
+	PlayerController player;
+	public Animator anim;
+	public bool begunCharge = false;
+
+	void Awake(){
+		anim = GetComponent<Animator>();
+		player = FindObjectOfType<PlayerController>();
 	}
-	
 	// Update is called once per frame
 	void Update () {
-		
-	}
-	void Reset(){
-		if(collided){
-			collided = false;
-			transform.localPosition= pos;
-			transform.localRotation = rot; 
-			transform.localScale = sca;
-			gameObject.SetActive(false);
+		if(!Input.GetButton("Shoot") && begunCharge){
+			anim.SetTrigger("Launch");
 		}
 	}
+	void PrepareToFireBomb(){
+		begunCharge = true;
+	}
+	void Launch(){
+		Debug.Log("launching");
+		Quaternion q = Quaternion.FromToRotation(Vector3.up, transform.forward);
+		transform.rotation = q * transform.rotation;
+		print(GetComponent<Projectile>().speed);
+		GetComponent<Rigidbody>().AddForce(transform.forward * GetComponent<Projectile>().speed, ForceMode.Impulse);
+		print(GetComponent<Rigidbody>().velocity);
+		player.GetComponent<Animator>().SetBool("Bomb Launched", true);
+	}
 }
+

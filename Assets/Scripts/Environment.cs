@@ -16,11 +16,9 @@ public class Environment : MonoBehaviour {
 	void OnCollisionEnter(Collision collider){
 		
 		if(collider.gameObject.GetComponent<Projectile>()){
-			if(collider.gameObject.GetComponent<Bomb>()){
-				collider.gameObject.GetComponent<Bomb>().collided = true;
-			}else{
-				Destroy(collider.gameObject);
-			}
+			print ("Destroyed " + collider.gameObject.name + " by " + name);
+			Destroy(collider.gameObject);
+
 		}
 	}
 }
