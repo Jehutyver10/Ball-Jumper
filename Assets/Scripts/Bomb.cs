@@ -2,11 +2,11 @@
 using System.Collections;
 
 [RequireComponent(typeof(Projectile))]
-public class Bullet : MonoBehaviour {
-
+public class Bomb : MonoBehaviour {
 	// Use this for initialization
-	void Start () {
-	
+	void Awake () {
+		Physics.IgnoreCollision(FindObjectOfType<PlayerController>().GetComponent<Collider>(), 
+		GetComponent<Collider>()); 
 	}
 	
 	// Update is called once per frame

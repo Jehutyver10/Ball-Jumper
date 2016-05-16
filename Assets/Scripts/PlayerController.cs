@@ -5,22 +5,27 @@ using System.Linq;
 
 public class PlayerController: MonoBehaviour {
 
-	private GameObject target;
-	private bool isLocked, canShoot, isMoving;
+	private GameObject target, bomb;
+	private bool isLocked, canShoot, moving, charging, begunCharge = false;
 	private Rigidbody rb;
 	private CameraFollow cam;
 	private Animator anim;
 	private float boostSpeed, normalSpeed, checkLock, lockOffTime,
 	newLockTime; 
 	private int targeter;
-	public GameObject bullet;
+	private Vector3 bombPos;
 
+	public GameObject bullet;
 	public float speed, newLockLimit = 1, rotationSpeed =1;
 	public float boostMultiplier;
 //	private bool jumped = false;
 	public float newY, lockLimit = 2;
 	public bool isBoosted;
 
+	void Awake(){
+		bomb = GetComponentInChildren<Bomb>().gameObject;
+		bomb.SetActive(false);
+	}
 	void Start (){
 		anim = GetComponent<Animator>();
 		targeter = 0;
@@ -36,22 +41,17 @@ public class PlayerController: MonoBehaviour {
 		cam = FindObjectOfType<CameraFollow>();
 		newY = 0;
 	}
-
-//	void OnTriggerEnter (Collider other){
-//		jumped = false;
-//}
-
-
 	void FixedUpdate () {
 		ControlPlayer();
 
 	}
 
-
 	void ControlPlayer(){
-		Move();
+		if(!charging){
+			Move();
+		}
 		RightStick();
-		Boost();
+		Charge();
 		LockOn();
 		cam.AdjustDamping();
 		Shoot();
@@ -71,9 +71,9 @@ public class PlayerController: MonoBehaviour {
 
 		//check for any movement
 		if(moveX != 0 || moveZ != 0 || moveY != 0){
-			isMoving = true;
+			moving = true;
 		} else{//not moving
-			isMoving = false;
+			moving = false;
 		}
 
 
@@ -96,16 +96,21 @@ public class PlayerController: MonoBehaviour {
 
 	}
 
-	void Boost(){
-		float boostCheck = Mathf.Round(Input.GetAxisRaw("Boost"));
-		if (boostCheck > 0){
-			if(!isBoosted && isMoving){
+	void Charge(){
+		float boostCheck = Input.GetAxis("Boost");
+		if (boostCheck > 0){//on R2 button press
+			if(!moving){
+				charging = true;
+			}
+
+			if(!isBoosted && moving){
 				cam.anim.SetTrigger("Boost");
 				isBoosted = true;
 			}
 			speed = boostSpeed;
 		} else {
 			isBoosted = false;
+			charging = false;
 			speed = normalSpeed;
 		}
 	}
@@ -219,18 +224,37 @@ public class PlayerController: MonoBehaviour {
 
 	void Shoot(){
 		if(Input.GetButton("Shoot") && canShoot){
-			if(!isBoosted){//stationary shot
+			canShoot = false;
+			if(!isBoosted && !charging){//stationary shot
 				anim.SetTrigger("Shoot Bullet");
+			} else if(charging){
+				bomb.SetActive(true);
+				anim.SetTrigger("Charge Bomb");
 			}
+		}
+
+		if(Input.GetButtonUp("Shoot") && begunCharge){
+			anim.SetTrigger("Shoot Bomb");
 		}
 	}
 
 	void AllowShoot(){
 		canShoot = true;
 	}
+
+	void PrepareToFireBomb(){
+		begunCharge = true;
+	}
+	void ShootBomb(){
+		Debug.Log("launching");
+		Quaternion q = Quaternion.FromToRotation(Vector3.up, transform.forward);
+		bomb.transform.rotation = q * bomb.transform.rotation;
+		bomb.transform.Translate(Vector3.forward);
+		//bomb.GetComponent<Rigidbody>().AddForce(bomb.transform.forward * bomb.GetComponent<Projectile>().speed);
+
+
+	}
 	void ShootBullet(){
-		canShoot = false;
-		Debug.Log("Shooting");
 		GameObject shot;
 		shot = Instantiate(bullet, transform.position + transform.forward, Quaternion.identity) as GameObject;
 		shot.transform.parent = GameObject.Find("Projectiles").transform;
