@@ -6,19 +6,19 @@ using System.Linq;
 public class PlayerController: MonoBehaviour {
 
 	private GameObject target;
-	private bool isLocked, moving, charging;
+	private bool isLocked, charging;
 	private Rigidbody rb;
 	private CameraFollow cam;
 	private Animator anim;
-	private float boostSpeed, normalSpeed, checkLock, lockOffTime,
-	newLockTime; 
+	private float boostSpeed, normalSpeed, checkLock,
+	lockOffTime, newLockTime; 
 	private int targeter;
 
-	public GameObject bullet, bomb;
-	public float speed, newLockLimit = 1, rotationSpeed =1;
+	public GameObject bullet;
+	public float speed = 150, newLockLimit = 1, rotationSpeed =1;
 	public float boostMultiplier;
 	public float newY, lockLimit = 2;
-	public bool isBoosted, canShoot;
+	public bool isBoosted, canShoot, moving;
 
 	void Start (){
 		anim = GetComponent<Animator>();
@@ -41,7 +41,7 @@ public class PlayerController: MonoBehaviour {
 	}
 
 	void ControlPlayer(){
-		if(!charging){
+		if(!charging || isBoosted){
 			Move();
 		}
 		RightStick();
@@ -63,8 +63,7 @@ public class PlayerController: MonoBehaviour {
 		rb.AddRelativeForce(movement * speed);
 		transform.rotation = Quaternion.Euler (0, newY, 0);
 
-		//check for any movement
-		if(moveX != 0 || moveZ != 0 || moveY != 0){
+		if((moveX != 0 || moveZ != 0 || moveY != 0) && Input.GetAxis("Boost") != 0){
 			moving = true;
 		} else{//not moving
 			moving = false;
@@ -186,6 +185,7 @@ public class PlayerController: MonoBehaviour {
 			return false;
 	}
 
+
 	private GameObject[] Targets(GameObject[] targets){//sorts game objects in an array by distance
 		List<GameObject> sortedTargets = new List<GameObject>();
 		GameObject[] newArray = targets;
@@ -225,16 +225,9 @@ public class PlayerController: MonoBehaviour {
 			if(!isBoosted && !charging){//stationary shot
 				anim.SetTrigger("Shoot Bullet");
 			} else if(charging){
-				anim.SetTrigger("Shoot Bomb");
+				Debug.Log("Charging");
 			}
 		}
-	}
-
-	void ShootBomb(){
-		GameObject shot = Instantiate(bomb, transform.position  + Vector3.forward,
-		Quaternion.identity) as GameObject;
-		shot.transform.parent = gameObject.transform;
-		shot.GetComponent<Animator>().SetTrigger("Rise");
 	}
 
 	void ShootBullet(){

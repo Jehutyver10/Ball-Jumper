@@ -15,7 +15,8 @@ public class Shredder : MonoBehaviour {
 
 	void OnTriggerExit(Collider collider){
 		if(collider.GetComponent<Projectile>()){
-				Destroy(collider.gameObject);
+			print(collider.gameObject.name + " destroyed by " + gameObject.name);
+			Destroy(collider.gameObject);
 		}
 	}
 }
