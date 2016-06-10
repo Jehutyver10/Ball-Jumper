@@ -5,20 +5,19 @@ using System.Linq;
 
 public class PlayerController: MonoBehaviour {
 
-	private GameObject target;
 	private bool isLocked, charging;
 	private Rigidbody rb;
 	private CameraFollow cam;
-	private Animator anim;
+	public Animator anim;
 	private float boostSpeed, normalSpeed, checkLock,
 	lockOffTime, newLockTime; 
 	private int targeter;
 
-	public GameObject bullet, bomb;
+	public GameObject bullet, bomb, target;
 	public float speed = 150, newLockLimit = 1, rotationSpeed =1;
 	public float boostMultiplier;
 	public float newY, lockLimit = 2;
-	public bool isBoosted, canShoot, moving;
+	public bool isBoosted, canShoot, moving, canBomb, makingBomb = false;
 
 	void Start (){
 		anim = GetComponent<Animator>();
@@ -27,6 +26,7 @@ public class PlayerController: MonoBehaviour {
 		newLockTime = Time.time;
 		checkLock = Mathf.Round(Input.GetAxis("LockOn"));
 		isLocked = false;
+		canBomb = true;
 		target = null;
 
 		normalSpeed = speed;
@@ -37,15 +37,27 @@ public class PlayerController: MonoBehaviour {
 	}
 	void FixedUpdate () {
 		ControlPlayer();
+		Debug.Log(canBomb);
 
 	}
 
+	bool CanMove(){
+		if(makingBomb){
+			return false;
+		}else if(isBoosted){
+			return true;
+		}else if(charging){
+			return false;
+		} else{
+			return true;
+		}
+	}
 	void ControlPlayer(){
-		if(!charging || isBoosted){
+		if(CanMove()){//can move while not charging or boosting
 			Move();
 		}
-		RightStick();
 		Charge();
+		RightStick();
 		LockOn();
 		cam.AdjustDamping();
 		Shoot();
@@ -132,6 +144,7 @@ public class PlayerController: MonoBehaviour {
 			}
 			else{
 				isLocked = false;
+				transform.LookAt(transform.forward);
 				HandleLock();
 			}
 		}
@@ -224,12 +237,17 @@ public class PlayerController: MonoBehaviour {
 			canShoot = false;
 			if(!isBoosted && !charging){//stationary shot
 				anim.SetTrigger("Shoot Bullet");
-			} else if(charging){
-				Debug.Log("Charging");
+			} else if(charging && canBomb){
+				anim.SetTrigger("Shoot Bomb");
 			}
 		}
 	}
 
+	void ShootBomb(){
+		GameObject shot = Instantiate(bomb, transform.position + transform.forward, Quaternion.identity) as GameObject;
+		canBomb = false;
+		makingBomb = true;
+	}
 	void ShootBullet(){
 		GameObject shot = Instantiate(bullet, transform.position + transform.forward, Quaternion.identity) as GameObject;
 		shot.transform.parent = GameObject.Find("Projectiles").transform;
