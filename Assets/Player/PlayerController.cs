@@ -14,7 +14,7 @@ public class PlayerController: MonoBehaviour {
 	lockOffTime, newLockTime; 
 	private int targeter;
 
-	public GameObject bullet;
+	public GameObject bullet, bomb;
 	public float speed = 150, newLockLimit = 1, rotationSpeed =1;
 	public float boostMultiplier;
 	public float newY, lockLimit = 2;
