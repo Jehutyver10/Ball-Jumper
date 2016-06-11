@@ -5,7 +5,7 @@ public class CameraFollow : MonoBehaviour {
 	public Animator anim;
 	public float damping = 1;
 	public float dampDelay = 2;
-
+	public float camCorrection;
 	private float dampTime, checkTime;
 	private GameObject player;
 	private Vector3 offset;
@@ -31,6 +31,8 @@ public class CameraFollow : MonoBehaviour {
 		Quaternion rotation = Quaternion.Euler(0, angle, 0);
 		transform.position = player.transform.position - (rotation * offset);
 		transform.LookAt(player.transform);
+		Quaternion fixedRotation =  Quaternion.Euler(transform.eulerAngles.x + camCorrection, transform.eulerAngles.y, transform.eulerAngles.z);
+		transform.rotation = fixedRotation;
 	}
 
 	public void AdjustDamping(){

@@ -16,7 +16,7 @@ public class PlayerController: MonoBehaviour {
 	public GameObject bullet, bomb, target;
 	public float speed = 150, newLockLimit = 1, rotationSpeed =1;
 	public float boostMultiplier;
-	public float newY, lockLimit = 2;
+	public float lockLimit = 2;
 	public bool isBoosted, canShoot, moving, canBomb, makingBomb = false;
 
 	void Start (){
@@ -33,7 +33,7 @@ public class PlayerController: MonoBehaviour {
 		boostSpeed = speed * boostMultiplier;
 		rb = GetComponent<Rigidbody> ();
 		cam = FindObjectOfType<CameraFollow>();
-		newY = 0;
+//		newY = 0;
 	}
 	void FixedUpdate () {
 		ControlPlayer();
@@ -73,7 +73,7 @@ public class PlayerController: MonoBehaviour {
 		float moveZ = Input.GetAxis ("Vertical");
 		Vector3 movement = new Vector3 (moveX, moveY, moveZ) ;
 		rb.AddRelativeForce(movement * speed);
-		transform.rotation = Quaternion.Euler (0, newY, 0);
+////		transform.rotation = Quaternion.Euler (0, newY, 0);
 
 		if((moveX != 0 || moveZ != 0 || moveY != 0) && Input.GetAxis("Boost") != 0){
 			moving = true;
@@ -97,7 +97,7 @@ public class PlayerController: MonoBehaviour {
 
 			}
 		}
-		newY = transform.rotation.eulerAngles.y;
+//		newY = transform.rotation.eulerAngles.y;
 
 	}
 
