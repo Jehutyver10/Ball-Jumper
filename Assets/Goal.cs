@@ -10,6 +10,12 @@ public class Goal : MonoBehaviour {
 			Debug.Log ("You win!");
 			Destroy (gameObject);
 		}
+
+		if(col.gameObject.GetComponent<Projectile>()){
+			print ("Destroyed " + col.gameObject.name + " by " + name);
+			Destroy(col.gameObject);
+		}
+
 	}
 
 }

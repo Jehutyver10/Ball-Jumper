@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Environment : MonoBehaviour {
+public class Shredder : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
@@ -13,8 +13,9 @@ public class Environment : MonoBehaviour {
 	
 	}
 
-	void OnCollisionEnter(Collision collider){
-		if(collider.gameObject.GetComponent<Projectile>()){
+	void OnTriggerExit(Collider collider){
+		if(collider.GetComponent<Projectile>()){
+			print(collider.gameObject.name + " destroyed by " + gameObject.name);
 			Destroy(collider.gameObject);
 		}
 	}

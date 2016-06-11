@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-[RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(Projectile))]
 public class Bullet : MonoBehaviour {
 
