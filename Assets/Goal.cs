@@ -12,8 +12,8 @@ public class Goal : MonoBehaviour {
 		}
 
 		if(col.gameObject.GetComponent<Projectile>()){
-			print ("Destroyed " + col.gameObject.name + " by " + name);
-			Destroy(col.gameObject);
+			print ("Destroyed " + name + " by " + col.gameObject.name);
+			Destroy(gameObject);
 		}
 
 	}
