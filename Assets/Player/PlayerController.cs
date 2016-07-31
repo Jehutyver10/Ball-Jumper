@@ -12,6 +12,7 @@ public class PlayerController: MonoBehaviour {
 	private float boostSpeed, normalSpeed, checkLock,
 	lockOffTime, newLockTime; 
 	private int targeter;
+	private Transform hand;
 
 	public GameObject bullet, bomb, target;
 	public float speed = 150, newLockLimit = 1, rotationSpeed =1;
@@ -244,12 +245,13 @@ public class PlayerController: MonoBehaviour {
 	}
 
 	void ShootBomb(){
-		GameObject shot = Instantiate(bomb, transform.position + transform.forward, Quaternion.identity) as GameObject;
+		GameObject shot = Instantiate(bomb, hand.position + transform.forward, Quaternion.identity) as GameObject;
 		canBomb = false;
 		makingBomb = true;
 	}
 	void ShootBullet(){
-		GameObject shot = Instantiate(bullet, transform.position + transform.forward, Quaternion.identity) as GameObject;
+		hand = GameObject.Find("EthanRightHand").transform;
+		GameObject shot = Instantiate(bullet, hand.position + transform.forward, Quaternion.identity) as GameObject;
 		shot.transform.parent = GameObject.Find("Projectiles").transform;
 		Quaternion q = Quaternion.FromToRotation(Vector3.up, transform.forward);
 		shot.transform.rotation = q * shot.transform.rotation;
