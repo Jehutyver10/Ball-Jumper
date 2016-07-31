@@ -12,11 +12,12 @@ public class PlayerController: MonoBehaviour {
 	private float boostSpeed, normalSpeed, checkLock,
 	lockOffTime, newLockTime; 
 	private int targeter;
+	private Transform hand;
 
 	public GameObject bullet, bomb, target;
 	public float speed = 150, newLockLimit = 1, rotationSpeed =1;
 	public float boostMultiplier;
-	public float newY, lockLimit = 2;
+	public float lockLimit = 2;
 	public bool isBoosted, canShoot, moving, canBomb, makingBomb = false;
 
 	void Start (){
@@ -33,7 +34,7 @@ public class PlayerController: MonoBehaviour {
 		boostSpeed = speed * boostMultiplier;
 		rb = GetComponent<Rigidbody> ();
 		cam = FindObjectOfType<CameraFollow>();
-		newY = 0;
+//		newY = 0;
 	}
 	void FixedUpdate () {
 		ControlPlayer();
@@ -73,7 +74,7 @@ public class PlayerController: MonoBehaviour {
 		float moveZ = Input.GetAxis ("Vertical");
 		Vector3 movement = new Vector3 (moveX, moveY, moveZ) ;
 		rb.AddRelativeForce(movement * speed);
-		transform.rotation = Quaternion.Euler (0, newY, 0);
+////		transform.rotation = Quaternion.Euler (0, newY, 0);
 
 		if((moveX != 0 || moveZ != 0 || moveY != 0) && Input.GetAxis("Boost") != 0){
 			moving = true;
@@ -97,7 +98,7 @@ public class PlayerController: MonoBehaviour {
 
 			}
 		}
-		newY = transform.rotation.eulerAngles.y;
+//		newY = transform.rotation.eulerAngles.y;
 
 	}
 
@@ -244,12 +245,13 @@ public class PlayerController: MonoBehaviour {
 	}
 
 	void ShootBomb(){
-		GameObject shot = Instantiate(bomb, transform.position + transform.forward, Quaternion.identity) as GameObject;
+		GameObject shot = Instantiate(bomb, hand.position + transform.forward, Quaternion.identity) as GameObject;
 		canBomb = false;
 		makingBomb = true;
 	}
 	void ShootBullet(){
-		GameObject shot = Instantiate(bullet, transform.position + transform.forward, Quaternion.identity) as GameObject;
+		hand = GameObject.Find("EthanRightHand").transform;
+		GameObject shot = Instantiate(bullet, hand.position + transform.forward, Quaternion.identity) as GameObject;
 		shot.transform.parent = GameObject.Find("Projectiles").transform;
 		Quaternion q = Quaternion.FromToRotation(Vector3.up, transform.forward);
 		shot.transform.rotation = q * shot.transform.rotation;
