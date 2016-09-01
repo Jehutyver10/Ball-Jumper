@@ -12,7 +12,7 @@ public class Goal : MonoBehaviour {
 		}
 
 		if(col.gameObject.GetComponent<Projectile>()){
-			print ("Destroyed " + name + " by " + col.gameObject.name);
+			//print ("Destroyed " + name + " by " + col.gameObject.name);
 			Destroy(gameObject);
 		}
 

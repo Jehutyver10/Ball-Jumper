@@ -38,7 +38,6 @@ public class PlayerController: MonoBehaviour {
 	}
 	void FixedUpdate () {
 		ControlPlayer();
-		Debug.Log(canBomb);
 
 	}
 
@@ -253,7 +252,13 @@ public class PlayerController: MonoBehaviour {
 	}
 
 	void MeleeAttack(){
-		Debug.Log("Melee attack.");
+		if(!isBoosted && !charging){//stationary shot
+			Debug.Log("Melee combo");
+		} else if(charging && canBomb){
+			Debug.Log("Burst Slice");
+		} else if(isBoosted){
+			Debug.Log("Lunge");
+		}
 		canAttack = true;
 	}
 
@@ -262,10 +267,15 @@ public class PlayerController: MonoBehaviour {
 			anim.SetTrigger("Shoot Bullet");
 		} else if(charging && canBomb){
 			anim.SetTrigger("Shoot Bomb");
+		} else if(isBoosted){
+			Debug.Log("Shoot Laser");
+			canAttack = true;
 		}
 	}
 	void ShootBomb(){
-		GameObject shot = Instantiate(bomb, hand.position + transform.forward, Quaternion.identity) as GameObject;
+		GameObject shot = Instantiate(bomb, transform.forward, Quaternion.identity) as GameObject;
+
+		Debug.Log("Reached Here");
 		canBomb = false;
 		makingBomb = true;
 	}
