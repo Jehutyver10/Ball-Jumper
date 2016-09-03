@@ -15,10 +15,10 @@ public class PlayerController: MonoBehaviour {
 	private Transform hand;
 
 	public GameObject bullet, bomb, target;
-	public float speed = 150, newLockLimit = 1, rotationSpeed =1;
+	public float speed = 150, newLockLimit = 1, rotationSpeed =1, meleeRange = 1;
 	public float boostMultiplier;
 	public float lockLimit = 2;
-	public bool isBoosted, canShoot, moving, canBomb, makingBomb = false;
+	public bool isBoosted, canAttack, moving, canBomb, makingBomb = false;
 
 	void Start (){
 		anim = GetComponent<Animator>();
@@ -38,7 +38,6 @@ public class PlayerController: MonoBehaviour {
 	}
 	void FixedUpdate () {
 		ControlPlayer();
-		Debug.Log(canBomb);
 
 	}
 
@@ -61,7 +60,7 @@ public class PlayerController: MonoBehaviour {
 		RightStick();
 		LockOn();
 		cam.AdjustDamping();
-		Shoot();
+		Attack();
 
 	}
 
@@ -230,22 +229,53 @@ public class PlayerController: MonoBehaviour {
 		return target;
 	}
 	void AllowShoot(){
-		canShoot = true;
+		canAttack = true;
 	}
 
-	void Shoot(){
-		if(Input.GetButton("Shoot") && canShoot){
-			canShoot = false;
-			if(!isBoosted && !charging){//stationary shot
-				anim.SetTrigger("Shoot Bullet");
-			} else if(charging && canBomb){
-				anim.SetTrigger("Shoot Bomb");
+	void Attack(){
+		if(Input.GetButton("Attack") && canAttack){
+			canAttack = false;
+			if(isLocked){
+				if(target.GetComponent<Enemy>()){//checks that the enemy is actually attackable
+					if(Vector3.Distance(target.transform.position, transform.position) <= meleeRange){//Check if in melee
+						MeleeAttack();
+					}else{
+						Shoot();
+					}
+				}else{
+					Shoot();
+				}
+			}else{
+				Shoot();
 			}
 		}
 	}
 
+	void MeleeAttack(){
+		if(!isBoosted && !charging){//stationary shot
+			Debug.Log("Melee combo");
+		} else if(charging && canBomb){
+			Debug.Log("Burst Slice");
+		} else if(isBoosted){
+			Debug.Log("Lunge");
+		}
+		canAttack = true;
+	}
+
+	void Shoot(){
+		if(!isBoosted && !charging){//stationary shot
+			anim.SetTrigger("Shoot Bullet");
+		} else if(charging && canBomb){
+			anim.SetTrigger("Shoot Bomb");
+		} else if(isBoosted){
+			Debug.Log("Shoot Laser");
+			canAttack = true;
+		}
+	}
 	void ShootBomb(){
-		GameObject shot = Instantiate(bomb, hand.position + transform.forward, Quaternion.identity) as GameObject;
+		GameObject shot = Instantiate(bomb, transform.forward, Quaternion.identity) as GameObject;
+
+		Debug.Log("Reached Here");
 		canBomb = false;
 		makingBomb = true;
 	}
