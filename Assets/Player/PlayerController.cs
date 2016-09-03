@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityStandardAssets.CrossPlatformInput;
 
 public class PlayerController: MonoBehaviour {
 
@@ -18,14 +19,14 @@ public class PlayerController: MonoBehaviour {
 	public float speed = 150, newLockLimit = 1, rotationSpeed =1, meleeRange = 1;
 	public float boostMultiplier;
 	public float lockLimit = 2;
-	public bool isBoosted, canAttack, moving, canBomb, makingBomb = false;
+	public bool isBoosted, moving, canBomb, canAttack = true, shielding = false, makingBomb = false;
 
 	void Start (){
 		anim = GetComponent<Animator>();
 		targeter = 0;
 		lockOffTime = Time.time;
 		newLockTime = Time.time;
-		checkLock = Mathf.Round(Input.GetAxis("LockOn"));
+		checkLock = Mathf.Round(CrossPlatformInputManager.GetAxis("LockOn"));
 		isLocked = false;
 		canBomb = true;
 		target = null;
@@ -66,16 +67,16 @@ public class PlayerController: MonoBehaviour {
 
 	void Move(){
 		float moveY = 0;
-		if(Input.GetButton("Altitude")){
-			moveY = Input.GetAxis("Altitude");
+		if(CrossPlatformInputManager.GetButton("Altitude")){
+			moveY = CrossPlatformInputManager.GetAxis("Altitude");
 		}
-		float moveX = Input.GetAxis ("Horizontal");
-		float moveZ = Input.GetAxis ("Vertical");
+		float moveX = CrossPlatformInputManager.GetAxis ("Horizontal");
+		float moveZ = CrossPlatformInputManager.GetAxis ("Vertical");
 		Vector3 movement = new Vector3 (moveX, moveY, moveZ) ;
 		rb.AddRelativeForce(movement * speed);
 ////		transform.rotation = Quaternion.Euler (0, newY, 0);
 
-		if((moveX != 0 || moveZ != 0 || moveY != 0) && Input.GetAxis("Boost") != 0){
+		if((moveX != 0 || moveZ != 0 || moveY != 0) && CrossPlatformInputManager.GetAxis("Boost") != 0){
 			moving = true;
 		} else{//not moving
 			moving = false;
@@ -85,13 +86,13 @@ public class PlayerController: MonoBehaviour {
 	}
 	void RightStick(){
 		if(!isLocked){
-			float rotateHorizontal = Input.GetAxis("Right Horizontal");
+			float rotateHorizontal = CrossPlatformInputManager.GetAxis("Right Horizontal");
 			transform.RotateAround (transform.localPosition, Vector3.up, rotateHorizontal * rotationSpeed);			
 		}else{
-			if(Input.GetAxis("Right Horizontal") != 0){
+			if(CrossPlatformInputManager.GetAxis("Right Horizontal") != 0){
 				float checkNewLockTime = Time.time;
 				if(checkNewLockTime - newLockTime > newLockLimit){
-					targeter += (int) Mathf.Round(Input.GetAxis("Right Horizontal"));
+					targeter += (int) Mathf.Round(CrossPlatformInputManager.GetAxis("Right Horizontal"));
 					HandleLock();
 			}
 
@@ -102,13 +103,13 @@ public class PlayerController: MonoBehaviour {
 	}
 
 	void Charge(){
-		float boostCheck = Input.GetAxis("Boost");
+		float boostCheck = CrossPlatformInputManager.GetAxis("Boost");
 		if (boostCheck > 0){//on R2 button press
-			if(!moving){
+			if(!moving && !shielding){//charge if stationary and not shielding
 				charging = true;
 			}
 
-			if(!isBoosted && moving){
+			if(!isBoosted && moving && !shielding){//boost if moving and not shielding and already boosted
 				cam.anim.SetTrigger("Boost");
 				isBoosted = true;
 			}
@@ -122,11 +123,11 @@ public class PlayerController: MonoBehaviour {
 
 	void LockOn(){
 		if(CanLockOn()){
-			if(Mathf.Round(Input.GetAxis("LockOn")) > 0){
+			if(Mathf.Round(CrossPlatformInputManager.GetAxis("LockOn")) > 0){
 				HandleLock();
 			}
 		} else{
-			if(Mathf.Round(Input.GetAxis("LockOn")) > 0 && isLocked){ //holding down button while locked on
+			if(Mathf.Round(CrossPlatformInputManager.GetAxis("LockOn")) > 0 && isLocked){ //holding down button while locked on
 				
 				if(canLockOff()){
 					lockOffTime = Time.time;
@@ -151,9 +152,9 @@ public class PlayerController: MonoBehaviour {
 	}
 
 	private bool CanLockOn(){
-		float lockOn =  Mathf.Round(Input.GetAxis("LockOn"));
+		float lockOn =  Mathf.Round(CrossPlatformInputManager.GetAxis("LockOn"));
 		if(lockOn != checkLock){
-			checkLock = Mathf.Round(Input.GetAxis("LockOn"));
+			checkLock = Mathf.Round(CrossPlatformInputManager.GetAxis("LockOn"));
 			return true;
 		}return false;
 
@@ -169,7 +170,7 @@ public class PlayerController: MonoBehaviour {
 		} else {// to switch targets;
 			if(targets.Length > 1){
 	
-				if(Mathf.Round(Input.GetAxis("LockOn")) > 0){
+				if(Mathf.Round(CrossPlatformInputManager.GetAxis("LockOn")) > 0){
 					cam.SlowDamping();
 					targeter = 0;
 					if(target != targets[0]){
@@ -177,7 +178,7 @@ public class PlayerController: MonoBehaviour {
 					}else{
 						target = targets[1];
 					}
-				}else if(Mathf.Round(Input.GetAxis("Right Horizontal")) != 0){
+				}else if(Mathf.Round(CrossPlatformInputManager.GetAxis("Right Horizontal")) != 0){
 					cam.SlowDamping();
 					if(targeter < 0){//index out of range
 						targeter = targets.Count() -1;
@@ -230,27 +231,57 @@ public class PlayerController: MonoBehaviour {
 	}
 	void AllowShoot(){
 		canAttack = true;
+		print("allowing attack");
+
 	}
 
 	void Attack(){
-		if(Input.GetButton("Attack") && canAttack){
-			canAttack = false;
-			if(isLocked){
-				if(target.GetComponent<Enemy>()){//checks that the enemy is actually attackable
-					if(Vector3.Distance(target.transform.position, transform.position) <= meleeRange){//Check if in melee
-						MeleeAttack();
+		if(canAttack){
+			if(CrossPlatformInputManager.GetButtonDown("Attack")){ 
+				canAttack = false;
+				if(isLocked){
+					if(target.GetComponent<Enemy>()){//checks that the enemy is actually attackable
+						if(Vector3.Distance(target.transform.position, transform.position) <= meleeRange){//Check if in melee
+							MeleeAttack();
+						}else{
+							Shoot();
+						}
 					}else{
 						Shoot();
 					}
 				}else{
 					Shoot();
 				}
-			}else{
-				Shoot();
+			}else if(CrossPlatformInputManager.GetButtonDown("Subweapon")){//for grabbing and sub weapon use
+				canAttack = false;
+				UseSubweapon();
+			}else if(CrossPlatformInputManager.GetButton("Shield")){//shielding
+				canAttack = false;
+				UseShield();
+			}
+		} else{
+			if(shielding){
+
+				if(!CrossPlatformInputManager.GetButton("Shield")){
+					shielding = false;
+					canAttack = true;
+					normalSpeed = normalSpeed * 2;
+				}
 			}
 		}
 	}
 
+	void UseShield(){
+		shielding = true;
+		normalSpeed = normalSpeed/2;
+		print("Slowed");
+	}
+
+	void UseSubweapon(){
+		Debug.Log("Subweapon used");
+		canAttack = true;
+
+	}
 	void MeleeAttack(){
 		if(!isBoosted && !charging){//stationary shot
 			Debug.Log("Melee combo");
@@ -260,6 +291,7 @@ public class PlayerController: MonoBehaviour {
 			Debug.Log("Lunge");
 		}
 		canAttack = true;
+
 	}
 
 	void Shoot(){
