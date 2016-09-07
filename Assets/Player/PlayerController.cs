@@ -306,8 +306,7 @@ public class PlayerController: MonoBehaviour {
 		}
 	}
 	void ShootBomb(){
-		//GameObject shot = Instantiate(bomb, transform.forward, Quaternion.identity) as GameObject;
-
+		GameObject shot = Instantiate(bomb, transform.forward, Quaternion.identity) as GameObject;	
 		Debug.Log("Reached Here");
 		canBomb = false;
 		makingBomb = true;
