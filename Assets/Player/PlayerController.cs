@@ -284,9 +284,10 @@ public class PlayerController: MonoBehaviour {
 	}
 	void MeleeAttack(){
 		if(!isBoosted && !charging){//stationary shot
-			Debug.Log("Melee combo");
+			anim.SetTrigger("Begin Melee Combo");
 		} else if(charging && canBomb){
 			Debug.Log("Burst Slice");
+			anim.SetTrigger("Spin Slice");
 		} else if(isBoosted){
 			Debug.Log("Lunge");
 		}
@@ -305,8 +306,7 @@ public class PlayerController: MonoBehaviour {
 		}
 	}
 	void ShootBomb(){
-		GameObject shot = Instantiate(bomb, transform.forward, Quaternion.identity) as GameObject;
-
+		GameObject shot = Instantiate(bomb, transform.forward, Quaternion.identity) as GameObject;	
 		Debug.Log("Reached Here");
 		canBomb = false;
 		makingBomb = true;
