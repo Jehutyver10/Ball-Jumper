@@ -107,6 +107,7 @@ public class PlayerController: MonoBehaviour {
 		if (boostCheck > 0){//on R2 button press
 			if(!moving && !shielding){//charge if stationary and not shielding
 				charging = true;
+				anim.SetBool("Charging", true);
 			}
 
 			if(!isBoosted && moving && !shielding){//boost if moving and not shielding and already boosted
@@ -117,6 +118,7 @@ public class PlayerController: MonoBehaviour {
 		} else {
 			isBoosted = false;
 			charging = false;
+			anim.SetBool("Charging", false);
 			speed = normalSpeed;
 		}
 	}
