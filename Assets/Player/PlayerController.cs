@@ -300,7 +300,7 @@ public class PlayerController: MonoBehaviour {
 		} else if(charging && canBomb){
 			anim.SetTrigger("Shoot Bomb");
 		} else if(isBoosted){
-			Debug.Log("Shoot Laser");
+			anim.SetTrigger("Shoot Blast");
 			canAttack = true;
 		}
 	}
