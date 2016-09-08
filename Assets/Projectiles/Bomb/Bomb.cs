@@ -4,12 +4,13 @@ using System.Collections;
 public class Bomb : MonoBehaviour {
 	Vector3 forward;
 	PlayerController player;
-	bool canFire = false;
+	bool canFire = false, launched = false;
 	Animator anim;
 	// Use this for initialization
 
 	void Awake(){
 		transform.parent = GameObject.Find("Projectiles").transform;
+		launched = false;
 	}
 	void Start () {
 		anim = GetComponent<Animator>();
@@ -36,13 +37,20 @@ public class Bomb : MonoBehaviour {
 			player.makingBomb = false;
 			anim.applyRootMotion = true;
 			canFire = true;
+			launched = true;
 	}
 
 	void OnCollisionEnter(Collision col){
 		player.canBomb = true;
+		if(launched){
+			Destroy(gameObject);
+		}
 	}
 	void OnTriggerEnter(Collider col){
 		player.canBomb = true;
+		if(launched){
+			Destroy(gameObject);
+		}
 	}
 	void Shoot(){
 		if(player.target){

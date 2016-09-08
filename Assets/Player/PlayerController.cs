@@ -286,10 +286,9 @@ public class PlayerController: MonoBehaviour {
 		if(!isBoosted && !charging){//stationary shot
 			anim.SetTrigger("Begin Melee Combo");
 		} else if(charging && canBomb){
-			Debug.Log("Burst Slice");
 			anim.SetTrigger("Spin Slice");
 		} else if(isBoosted){
-			Debug.Log("Lunge");
+			anim.SetTrigger("Lunge");
 		}
 		canAttack = true;
 
