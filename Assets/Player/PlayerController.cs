@@ -14,6 +14,7 @@ public class PlayerController: MonoBehaviour {
 	lockOffTime, newLockTime; 
 	private int targeter;
 	private Transform hand;
+	private GameObject[] targets;
 
 	public GameObject bullet, bomb, target;
 	public float speed = 150, newLockLimit = 1, rotationSpeed =1, meleeRange = 1;
@@ -40,16 +41,17 @@ public class PlayerController: MonoBehaviour {
 	void FixedUpdate () {
 		ControlPlayer();
 
+
 	}
 
 	bool CanMove(){
 		if(makingBomb){
 			return false;
-		}else if(isBoosted){
-			return true;
 		}else if(charging){
 			return false;
-		} else{
+		} else if(isBoosted){
+			return true;
+		}else{
 			return true;
 		}
 	}
@@ -92,7 +94,7 @@ public class PlayerController: MonoBehaviour {
 			if(CrossPlatformInputManager.GetAxis("Right Horizontal") != 0){
 				float checkNewLockTime = Time.time;
 				if(checkNewLockTime - newLockTime > newLockLimit){
-					targeter += (int) Mathf.Round(CrossPlatformInputManager.GetAxis("Right Horizontal"));
+					targeter = (int) CrossPlatformInputManager.GetAxis("Right Horizontal");
 					HandleLock();
 			}
 
@@ -108,11 +110,10 @@ public class PlayerController: MonoBehaviour {
 			if(!moving && !shielding){//charge if stationary and not shielding
 				charging = true;
 				anim.SetBool("Charging", true);
-			}
-
-			if(!isBoosted && moving && !shielding){//boost if moving and not shielding and already boosted
+			}else if(!isBoosted && moving && !shielding && !charging){//boost if moving and not shielding and already boosted
 				cam.anim.SetTrigger("Boost");
 				isBoosted = true;
+				charging = false;
 			}
 			speed = boostSpeed;
 		} else {
@@ -161,20 +162,22 @@ public class PlayerController: MonoBehaviour {
 		}return false;
 
 	}
+
+	void FindTargets(){
+		targets = Targets(GameObject.FindGameObjectsWithTag("Lockable"));
+	}
 	void HandleLock(){
-		GameObject[] targets = Targets(GameObject.FindGameObjectsWithTag("Lockable"));
+		FindTargets();
 		if (isLocked == false) {//to lock on in the beginning
 			if(targets.Length >0){
 				cam.SlowDamping();
-				target = GameObject.FindGameObjectWithTag("Lockable");
+				target = targets[targeter % targets.Count()];
 				isLocked = true;
 			}
 		} else {// to switch targets;
 			if(targets.Length > 1){
-	
 				if(Mathf.Round(CrossPlatformInputManager.GetAxis("LockOn")) > 0){
 					cam.SlowDamping();
-					targeter = 0;
 					if(target != targets[0]){
 						target = targets[0];
 					}else{
@@ -183,9 +186,12 @@ public class PlayerController: MonoBehaviour {
 				}else if(Mathf.Round(CrossPlatformInputManager.GetAxis("Right Horizontal")) != 0){
 					cam.SlowDamping();
 					if(targeter < 0){//index out of range
-						targeter = targets.Count() -1;
+						targeter = targets.Count() - 1;
+					}else{
+						targeter = 0;
 					}
-					target = targets[targeter % targets.Count()];
+					target = targets[targeter];
+					
 					newLockTime = Time.time;
 				}
 			}
@@ -202,10 +208,10 @@ public class PlayerController: MonoBehaviour {
 	}
 
 
-	private GameObject[] Targets(GameObject[] targets){//sorts game objects in an array by distance
+	private GameObject[] Targets(GameObject[] targetsList){//sorts game objects in an array by distance
 		List<GameObject> sortedTargets = new List<GameObject>();
-		GameObject[] newArray = targets;
-		for(int i = 0; i <targets.Length; i++){
+		GameObject[] newArray = targetsList;
+		for(int i = 0; i <targetsList.Length; i++){
 			sortedTargets.Add(Target(newArray.ToList()));
 			List<GameObject> tempArray = new List<GameObject>();
 			for(int j = 0; j < newArray.Length; j++){
@@ -233,7 +239,6 @@ public class PlayerController: MonoBehaviour {
 	}
 	void AllowShoot(){
 		canAttack = true;
-		print("allowing attack");
 
 	}
 
@@ -276,7 +281,6 @@ public class PlayerController: MonoBehaviour {
 	void UseShield(){
 		shielding = true;
 		normalSpeed = normalSpeed/2;
-		print("Slowed");
 	}
 
 	void UseSubweapon(){
@@ -308,7 +312,6 @@ public class PlayerController: MonoBehaviour {
 	}
 	void ShootBomb(){
 		GameObject shot = Instantiate(bomb, transform.forward, Quaternion.identity) as GameObject;	
-		Debug.Log("Reached Here");
 		canBomb = false;
 		makingBomb = true;
 	}
