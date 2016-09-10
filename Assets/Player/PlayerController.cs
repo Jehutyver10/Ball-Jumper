@@ -43,18 +43,6 @@ public class PlayerController: MonoBehaviour {
 
 
 	}
-
-	bool CanMove(){
-		if(makingBomb){
-			return false;
-		}else if(charging){
-			return false;
-		} else if(isBoosted){
-			return true;
-		}else{
-			return true;
-		}
-	}
 	void ControlPlayer(){
 		if(CanMove()){//can move while not charging or boosting
 			Move();
@@ -67,6 +55,19 @@ public class PlayerController: MonoBehaviour {
 
 	}
 
+	bool CanMove(){
+		if(makingBomb){
+			return false;
+		}else if(charging){
+			return false;
+		} else if(isBoosted){
+			return true;
+		}else{
+			return true;
+		}
+	}
+
+
 	void Move(){
 		float moveY = 0;
 		if(CrossPlatformInputManager.GetButton("Altitude")){
@@ -75,13 +76,15 @@ public class PlayerController: MonoBehaviour {
 		float moveX = CrossPlatformInputManager.GetAxis ("Horizontal");
 		float moveZ = CrossPlatformInputManager.GetAxis ("Vertical");
 		Vector3 movement = new Vector3 (moveX, moveY, moveZ) ;
-		rb.AddRelativeForce(movement * speed);
+		//multiply movement by the rotation along the y axis
+		movement = transform.TransformDirection(movement);
+		rb.MovePosition(transform.position + movement * speed * Time.fixedDeltaTime);
 ////		transform.rotation = Quaternion.Euler (0, newY, 0);
 
-		if((moveX != 0 || moveZ != 0 || moveY != 0) && CrossPlatformInputManager.GetAxis("Boost") != 0){
-			moving = true;
-		} else{//not moving
+		if((moveX == 0 && moveY == 0 && moveY == 0) && !isBoosted){
 			moving = false;
+		} else{//not moving
+			moving = true;
 		}
 
 
@@ -111,7 +114,7 @@ public class PlayerController: MonoBehaviour {
 				charging = true;
 				anim.SetBool("Charging", true);
 			}else if(!isBoosted && moving && !shielding && !charging){//boost if moving and not shielding and already boosted
-				cam.anim.SetTrigger("Boost");
+				cam.anim.SetBool("Boosting", true);
 				isBoosted = true;
 				charging = false;
 			}
@@ -120,6 +123,7 @@ public class PlayerController: MonoBehaviour {
 			isBoosted = false;
 			charging = false;
 			anim.SetBool("Charging", false);
+			cam.anim.SetBool("Boosting", false);
 			speed = normalSpeed;
 		}
 	}
