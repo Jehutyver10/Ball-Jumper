@@ -14,6 +14,7 @@ public class PlayerController: MonoBehaviour {
 	lockOffTime, newLockTime; 
 	private int targeter;
 	private Transform hand;
+	private GameObject[] targets;
 
 	public GameObject bullet, bomb, target;
 	public float speed = 150, newLockLimit = 1, rotationSpeed =1, meleeRange = 1;
@@ -40,18 +41,7 @@ public class PlayerController: MonoBehaviour {
 	void FixedUpdate () {
 		ControlPlayer();
 
-	}
 
-	bool CanMove(){
-		if(makingBomb){
-			return false;
-		}else if(isBoosted){
-			return true;
-		}else if(charging){
-			return false;
-		} else{
-			return true;
-		}
 	}
 	void ControlPlayer(){
 		if(CanMove()){//can move while not charging or boosting
@@ -65,6 +55,19 @@ public class PlayerController: MonoBehaviour {
 
 	}
 
+	bool CanMove(){
+		if(makingBomb){
+			return false;
+		}else if(charging){
+			return false;
+		} else if(isBoosted){
+			return true;
+		}else{
+			return true;
+		}
+	}
+
+
 	void Move(){
 		float moveY = 0;
 		if(CrossPlatformInputManager.GetButton("Altitude")){
@@ -73,13 +76,15 @@ public class PlayerController: MonoBehaviour {
 		float moveX = CrossPlatformInputManager.GetAxis ("Horizontal");
 		float moveZ = CrossPlatformInputManager.GetAxis ("Vertical");
 		Vector3 movement = new Vector3 (moveX, moveY, moveZ) ;
-		rb.AddRelativeForce(movement * speed);
+		//multiply movement by the rotation along the y axis
+		movement = transform.TransformDirection(movement);
+		rb.MovePosition(transform.position + movement * speed * Time.fixedDeltaTime);
 ////		transform.rotation = Quaternion.Euler (0, newY, 0);
 
-		if((moveX != 0 || moveZ != 0 || moveY != 0) && CrossPlatformInputManager.GetAxis("Boost") != 0){
-			moving = true;
-		} else{//not moving
+		if((moveX == 0 && moveY == 0 && moveY == 0) && !isBoosted){
 			moving = false;
+		} else{//not moving
+			moving = true;
 		}
 
 
@@ -92,7 +97,7 @@ public class PlayerController: MonoBehaviour {
 			if(CrossPlatformInputManager.GetAxis("Right Horizontal") != 0){
 				float checkNewLockTime = Time.time;
 				if(checkNewLockTime - newLockTime > newLockLimit){
-					targeter += (int) Mathf.Round(CrossPlatformInputManager.GetAxis("Right Horizontal"));
+					targeter = (int) CrossPlatformInputManager.GetAxis("Right Horizontal");
 					HandleLock();
 			}
 
@@ -107,16 +112,18 @@ public class PlayerController: MonoBehaviour {
 		if (boostCheck > 0){//on R2 button press
 			if(!moving && !shielding){//charge if stationary and not shielding
 				charging = true;
-			}
-
-			if(!isBoosted && moving && !shielding){//boost if moving and not shielding and already boosted
-				cam.anim.SetTrigger("Boost");
+				anim.SetBool("Charging", true);
+			}else if(!isBoosted && moving && !shielding && !charging){//boost if moving and not shielding and already boosted
+				cam.anim.SetBool("Boosting", true);
 				isBoosted = true;
+				charging = false;
 			}
 			speed = boostSpeed;
 		} else {
 			isBoosted = false;
 			charging = false;
+			anim.SetBool("Charging", false);
+			cam.anim.SetBool("Boosting", false);
 			speed = normalSpeed;
 		}
 	}
@@ -159,20 +166,22 @@ public class PlayerController: MonoBehaviour {
 		}return false;
 
 	}
+
+	void FindTargets(){
+		targets = Targets(GameObject.FindGameObjectsWithTag("Lockable"));
+	}
 	void HandleLock(){
-		GameObject[] targets = Targets(GameObject.FindGameObjectsWithTag("Lockable"));
+		FindTargets();
 		if (isLocked == false) {//to lock on in the beginning
 			if(targets.Length >0){
 				cam.SlowDamping();
-				target = GameObject.FindGameObjectWithTag("Lockable");
+				target = targets[targeter % targets.Count()];
 				isLocked = true;
 			}
 		} else {// to switch targets;
 			if(targets.Length > 1){
-	
 				if(Mathf.Round(CrossPlatformInputManager.GetAxis("LockOn")) > 0){
 					cam.SlowDamping();
-					targeter = 0;
 					if(target != targets[0]){
 						target = targets[0];
 					}else{
@@ -181,9 +190,12 @@ public class PlayerController: MonoBehaviour {
 				}else if(Mathf.Round(CrossPlatformInputManager.GetAxis("Right Horizontal")) != 0){
 					cam.SlowDamping();
 					if(targeter < 0){//index out of range
-						targeter = targets.Count() -1;
+						targeter = targets.Count() - 1;
+					}else{
+						targeter = 0;
 					}
-					target = targets[targeter % targets.Count()];
+					target = targets[targeter];
+					
 					newLockTime = Time.time;
 				}
 			}
@@ -200,10 +212,10 @@ public class PlayerController: MonoBehaviour {
 	}
 
 
-	private GameObject[] Targets(GameObject[] targets){//sorts game objects in an array by distance
+	private GameObject[] Targets(GameObject[] targetsList){//sorts game objects in an array by distance
 		List<GameObject> sortedTargets = new List<GameObject>();
-		GameObject[] newArray = targets;
-		for(int i = 0; i <targets.Length; i++){
+		GameObject[] newArray = targetsList;
+		for(int i = 0; i <targetsList.Length; i++){
 			sortedTargets.Add(Target(newArray.ToList()));
 			List<GameObject> tempArray = new List<GameObject>();
 			for(int j = 0; j < newArray.Length; j++){
@@ -231,7 +243,6 @@ public class PlayerController: MonoBehaviour {
 	}
 	void AllowShoot(){
 		canAttack = true;
-		print("allowing attack");
 
 	}
 
@@ -274,7 +285,6 @@ public class PlayerController: MonoBehaviour {
 	void UseShield(){
 		shielding = true;
 		normalSpeed = normalSpeed/2;
-		print("Slowed");
 	}
 
 	void UseSubweapon(){
@@ -286,10 +296,9 @@ public class PlayerController: MonoBehaviour {
 		if(!isBoosted && !charging){//stationary shot
 			anim.SetTrigger("Begin Melee Combo");
 		} else if(charging && canBomb){
-			Debug.Log("Burst Slice");
 			anim.SetTrigger("Spin Slice");
 		} else if(isBoosted){
-			Debug.Log("Lunge");
+			anim.SetTrigger("Lunge");
 		}
 		canAttack = true;
 
@@ -301,13 +310,12 @@ public class PlayerController: MonoBehaviour {
 		} else if(charging && canBomb){
 			anim.SetTrigger("Shoot Bomb");
 		} else if(isBoosted){
-			Debug.Log("Shoot Laser");
+			anim.SetTrigger("Shoot Blast");
 			canAttack = true;
 		}
 	}
 	void ShootBomb(){
 		GameObject shot = Instantiate(bomb, transform.forward, Quaternion.identity) as GameObject;	
-		Debug.Log("Reached Here");
 		canBomb = false;
 		makingBomb = true;
 	}
