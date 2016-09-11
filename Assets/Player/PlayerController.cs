@@ -4,25 +4,31 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityStandardAssets.CrossPlatformInput;
 
+[RequireComponent (typeof (Health))]
 public class PlayerController: MonoBehaviour {
 
 	private bool isLocked, charging;
 	private Rigidbody rb;
-	private CameraFollow cam;
-	public Animator anim;
+	private Camera cam;
+	private CameraFollow camFollow;
 	private float boostSpeed, normalSpeed, checkLock,
 	lockOffTime, newLockTime; 
 	private int targeter;
 	private Transform hand;
 	private GameObject[] targets;
+	private Health health;
+	private Weapon weapon;
 
-	public GameObject bullet, bomb, target;
+	public Animator anim;
+	public GameObject bullet, bomb, blast, target;
 	public float speed = 150, newLockLimit = 1, rotationSpeed =1, meleeRange = 1;
 	public float boostMultiplier;
 	public float lockLimit = 2;
 	public bool isBoosted, moving, canBomb, canAttack = true, shielding = false, makingBomb = false;
 
 	void Start (){
+		weapon = GetComponentInChildren<Weapon>();
+		health = GetComponent<Health>();
 		anim = GetComponent<Animator>();
 		targeter = 0;
 		lockOffTime = Time.time;
@@ -35,11 +41,12 @@ public class PlayerController: MonoBehaviour {
 		normalSpeed = speed;
 		boostSpeed = speed * boostMultiplier;
 		rb = GetComponent<Rigidbody> ();
-		cam = FindObjectOfType<CameraFollow>();
+		camFollow = FindObjectOfType<CameraFollow>();
 //		newY = 0;
 	}
 	void FixedUpdate () {
 		ControlPlayer();
+
 
 
 	}
@@ -50,7 +57,7 @@ public class PlayerController: MonoBehaviour {
 		Charge();
 		RightStick();
 		LockOn();
-		cam.AdjustDamping();
+		camFollow.AdjustDamping();
 		Attack();
 
 	}
@@ -114,7 +121,7 @@ public class PlayerController: MonoBehaviour {
 				charging = true;
 				anim.SetBool("Charging", true);
 			}else if(!isBoosted && moving && !shielding && !charging){//boost if moving and not shielding and already boosted
-				cam.anim.SetBool("Boosting", true);
+				camFollow.anim.SetBool("Boosting", true);
 				isBoosted = true;
 				charging = false;
 			}
@@ -123,7 +130,7 @@ public class PlayerController: MonoBehaviour {
 			isBoosted = false;
 			charging = false;
 			anim.SetBool("Charging", false);
-			cam.anim.SetBool("Boosting", false);
+			camFollow.anim.SetBool("Boosting", false);
 			speed = normalSpeed;
 		}
 	}
@@ -140,7 +147,7 @@ public class PlayerController: MonoBehaviour {
 					lockOffTime = Time.time;
 					target = null;
 					isLocked = false;
-					cam.SlowDamping();
+					camFollow.SlowDamping();
 				}
 			}else{
 				lockOffTime = Time.time;
@@ -174,21 +181,21 @@ public class PlayerController: MonoBehaviour {
 		FindTargets();
 		if (isLocked == false) {//to lock on in the beginning
 			if(targets.Length >0){
-				cam.SlowDamping();
+				camFollow.SlowDamping();
 				target = targets[targeter % targets.Count()];
 				isLocked = true;
 			}
 		} else {// to switch targets;
 			if(targets.Length > 1){
 				if(Mathf.Round(CrossPlatformInputManager.GetAxis("LockOn")) > 0){
-					cam.SlowDamping();
+					camFollow.SlowDamping();
 					if(target != targets[0]){
 						target = targets[0];
 					}else{
 						target = targets[1];
 					}
 				}else if(Mathf.Round(CrossPlatformInputManager.GetAxis("Right Horizontal")) != 0){
-					cam.SlowDamping();
+					camFollow.SlowDamping();
 					if(targeter < 0){//index out of range
 						targeter = targets.Count() - 1;
 					}else{
@@ -295,10 +302,13 @@ public class PlayerController: MonoBehaviour {
 	void MeleeAttack(){
 		if(!isBoosted && !charging){//stationary shot
 			anim.SetTrigger("Begin Melee Combo");
+			weapon.damage = weapon.comboDamage;
 		} else if(charging && canBomb){
 			anim.SetTrigger("Spin Slice");
+			weapon.damage = weapon.burstDamage;
 		} else if(isBoosted){
 			anim.SetTrigger("Lunge");
+			weapon.damage = weapon.dashDamage;
 		}
 		canAttack = true;
 
@@ -310,12 +320,38 @@ public class PlayerController: MonoBehaviour {
 		} else if(charging && canBomb){
 			anim.SetTrigger("Shoot Bomb");
 		} else if(isBoosted){
-			anim.SetTrigger("Shoot Blast");
+			anim.SetBool("Locking Blast", true);
 			canAttack = true;
+		}
+	}
+	public void LockBlast(){
+		Enemy[] Enemies = GameObject.FindObjectsOfType<Enemy>();
+		if(Input.GetButton("Attack")){
+			foreach(Enemy enemy in Enemies){
+				if(enemy.canBeHomedInOn){
+
+				//TODO make some kind of UI lock-on thing
+				}
+			}
+		}
+		else{
+			anim.SetBool("Locking Blast", false);
+			ShootBlast(Enemies);
+		}
+	}
+
+	void ShootBlast(Enemy[] EnemyArray){
+		foreach(Enemy enemy in EnemyArray){
+			if(enemy.canBeHomedInOn == true){
+				GameObject shot = Instantiate(blast, transform.forward, Quaternion.identity) as GameObject;	
+				shot.GetComponent<Blast>().setTarget(enemy);
+				shot.GetComponent<Projectile>().SetShooter(this.gameObject);
+			}
 		}
 	}
 	void ShootBomb(){
 		GameObject shot = Instantiate(bomb, transform.forward, Quaternion.identity) as GameObject;	
+		shot.GetComponent<Projectile>().SetShooter(this.gameObject);
 		canBomb = false;
 		makingBomb = true;
 	}
@@ -323,6 +359,7 @@ public class PlayerController: MonoBehaviour {
 		hand = GameObject.Find("EthanRightHand").transform;
 		GameObject shot = Instantiate(bullet, hand.position + transform.forward, Quaternion.identity) as GameObject;
 		shot.transform.parent = GameObject.Find("Projectiles").transform;
+		shot.GetComponent<Projectile>().SetShooter(this.gameObject);
 		Quaternion q = Quaternion.FromToRotation(Vector3.up, transform.forward);
 		shot.transform.rotation = q * shot.transform.rotation;
 		shot.GetComponent<Rigidbody>().AddForce(transform.forward * shot.GetComponent<Projectile>().speed);

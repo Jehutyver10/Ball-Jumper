@@ -1,37 +1,23 @@
 ﻿using UnityEngine;
 using System.Collections;
-public class Melee : StateMachineBehaviour {
-	GameObject target, player;
-	Weapon weapon;
 
-
-	public float MeleeLimit = 3;
+public class LockBlast : StateMachineBehaviour {
+	private PlayerController player;
 
 	 // OnStateEnter is called when a transition starts and the state machine starts to evaluate this state
 	override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
-		target = animator.GetComponent<PlayerController>().target;//finds the target of the player
-		player = animator.GetComponent<PlayerController>().gameObject;//finds player
-		weapon = animator.GetComponentInChildren<Weapon>(); //finds the player's weapon
-
-		weapon.Activate();
-		Debug.Log(stateInfo.fullPathHash);
-	
+		player = GameObject.FindObjectOfType<PlayerController>();
 	}
-		
+
 	// OnStateUpdate is called on each Update frame between OnStateEnter and OnStateExit callbacks
 	override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
-		if(target){
-			if(Vector3.Distance(player.transform.position, target.transform.position) > MeleeLimit){
-				player.transform.Translate(Vector3.forward);
-			}
-		}
-
+		player.LockBlast();
 	}
 
 	// OnStateExit is called when a transition ends and the state machine finishes evaluating this state
-	override public void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
-		weapon.Deactivate();
-	}
+	//override public void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
+	//
+	//}
 
 	// OnStateMove is called right after Animator.OnAnimatorMove(). Code that processes and affects root motion should be implemented here
 	//override public void OnStateMove(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
