@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+[RequireComponent(typeof(Projectile))]
 public class Blast : MonoBehaviour {
 	Rigidbody rb;
-	public float speed = 1f;
+	float speed;
 	public Enemy target;
 	float endTime, timeLimit = 5;
 
@@ -22,8 +23,10 @@ public class Blast : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		if(target){
-			transform.position = Vector3.MoveTowards(transform.position, target.transform.position + transform.forward, speed * Time.deltaTime);
+			transform.position = Vector3.MoveTowards(transform.position, target.transform.position, speed * Time.deltaTime);
 			transform.LookAt(target.transform);
+		} else{
+			transform.position = Vector3.MoveTowards(transform.position, transform.position + transform.forward, speed * Time.deltaTime);
 		}
 		if(Time.time - endTime > timeLimit){
 			Destroy(gameObject);
@@ -37,10 +40,9 @@ public class Blast : MonoBehaviour {
 
 	void OnTriggerEnter(Collider col){
 		if(col.gameObject.GetComponent<Enemy>()){
-			print ("Collided with " + col.gameObject.name);
-			Destroy(col.gameObject);	
-			Destroy(gameObject);
+
 		}
+
 	}
 
 

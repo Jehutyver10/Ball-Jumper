@@ -1,11 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+[RequireComponent(typeof(Projectile))]
 public class Bomb : MonoBehaviour {
+	float initialDamage;
 	Vector3 forward;
 	PlayerController player;
 	bool canFire = false, launched = false;
 	Animator anim;
+	Projectile projectile;
 	// Use this for initialization
 
 	void Awake(){
@@ -13,6 +16,7 @@ public class Bomb : MonoBehaviour {
 		launched = false;
 	}
 	void Start () {
+		projectile = GetComponent<Projectile>();
 		anim = GetComponent<Animator>();
 		anim.applyRootMotion = false;
 		player = GameObject.FindObjectOfType<PlayerController>();
@@ -48,9 +52,9 @@ public class Bomb : MonoBehaviour {
 	}
 	void OnTriggerEnter(Collider col){
 		player.canBomb = true;
-		if(launched){
-			Destroy(gameObject);
-		}
+	}
+	public void SetDamage(float damage){
+		projectile.damage = damage;
 	}
 	void Shoot(){
 		if(player.target){

@@ -4,19 +4,22 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityStandardAssets.CrossPlatformInput;
 
+[RequireComponent (typeof (Health))]
 public class PlayerController: MonoBehaviour {
 
 	private bool isLocked, charging;
 	private Rigidbody rb;
 	private Camera cam;
 	private CameraFollow camFollow;
-	public Animator anim;
 	private float boostSpeed, normalSpeed, checkLock,
 	lockOffTime, newLockTime; 
 	private int targeter;
 	private Transform hand;
 	private GameObject[] targets;
+	private Health health;
+	private Weapon weapon;
 
+	public Animator anim;
 	public GameObject bullet, bomb, blast, target;
 	public float speed = 150, newLockLimit = 1, rotationSpeed =1, meleeRange = 1;
 	public float boostMultiplier;
@@ -24,6 +27,8 @@ public class PlayerController: MonoBehaviour {
 	public bool isBoosted, moving, canBomb, canAttack = true, shielding = false, makingBomb = false;
 
 	void Start (){
+		weapon = GetComponentInChildren<Weapon>();
+		health = GetComponent<Health>();
 		anim = GetComponent<Animator>();
 		targeter = 0;
 		lockOffTime = Time.time;
@@ -297,10 +302,13 @@ public class PlayerController: MonoBehaviour {
 	void MeleeAttack(){
 		if(!isBoosted && !charging){//stationary shot
 			anim.SetTrigger("Begin Melee Combo");
+			weapon.damage = weapon.comboDamage;
 		} else if(charging && canBomb){
 			anim.SetTrigger("Spin Slice");
+			weapon.damage = weapon.burstDamage;
 		} else if(isBoosted){
 			anim.SetTrigger("Lunge");
+			weapon.damage = weapon.dashDamage;
 		}
 		canAttack = true;
 
@@ -337,11 +345,13 @@ public class PlayerController: MonoBehaviour {
 			if(enemy.canBeHomedInOn == true){
 				GameObject shot = Instantiate(blast, transform.forward, Quaternion.identity) as GameObject;	
 				shot.GetComponent<Blast>().setTarget(enemy);
+				shot.GetComponent<Projectile>().SetShooter(this.gameObject);
 			}
 		}
 	}
 	void ShootBomb(){
 		GameObject shot = Instantiate(bomb, transform.forward, Quaternion.identity) as GameObject;	
+		shot.GetComponent<Projectile>().SetShooter(this.gameObject);
 		canBomb = false;
 		makingBomb = true;
 	}
@@ -349,6 +359,7 @@ public class PlayerController: MonoBehaviour {
 		hand = GameObject.Find("EthanRightHand").transform;
 		GameObject shot = Instantiate(bullet, hand.position + transform.forward, Quaternion.identity) as GameObject;
 		shot.transform.parent = GameObject.Find("Projectiles").transform;
+		shot.GetComponent<Projectile>().SetShooter(this.gameObject);
 		Quaternion q = Quaternion.FromToRotation(Vector3.up, transform.forward);
 		shot.transform.rotation = q * shot.transform.rotation;
 		shot.GetComponent<Rigidbody>().AddForce(transform.forward * shot.GetComponent<Projectile>().speed);
