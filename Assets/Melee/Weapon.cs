@@ -2,10 +2,7 @@
 using System.Collections;
 
 public class Weapon : MonoBehaviour {
-	public float damage = 100;
-	public float comboDamage = 150;
-	public float dashDamage = 200;
-	public float burstDamage = 500;
+	public float damage = 100, comboDamage = 150,dashDamage = 200,  burstDamage = 500;
 	public bool active = false;
 	// Use this for initialization
 	void Start () {

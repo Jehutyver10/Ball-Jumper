@@ -14,7 +14,6 @@ public class Melee : StateMachineBehaviour {
 		weapon = animator.GetComponentInChildren<Weapon>(); //finds the player's weapon
 
 		weapon.Activate();
-		Debug.Log(stateInfo.fullPathHash);
 	
 	}
 		

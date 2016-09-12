@@ -16,7 +16,6 @@ public class PlayerController: MonoBehaviour {
 	private int targeter;
 	private Transform hand;
 	private GameObject[] targets;
-	private Health health;
 	private Weapon weapon;
 
 	public Animator anim;
@@ -28,7 +27,6 @@ public class PlayerController: MonoBehaviour {
 
 	void Start (){
 		weapon = GetComponentInChildren<Weapon>();
-		health = GetComponent<Health>();
 		anim = GetComponent<Animator>();
 		targeter = 0;
 		lockOffTime = Time.time;
@@ -82,13 +80,15 @@ public class PlayerController: MonoBehaviour {
 		}
 		float moveX = CrossPlatformInputManager.GetAxis ("Horizontal");
 		float moveZ = CrossPlatformInputManager.GetAxis ("Vertical");
-		Vector3 movement = new Vector3 (moveX, moveY, moveZ) ;
-		//multiply movement by the rotation along the y axis
+		Vector3 movement = new Vector3 (moveX, moveY, moveZ);
+		anim.SetFloat("Velocity X", moveX);
+		anim.SetFloat("Velocity Z", moveZ);
+		//translate movement by the rotation along the y axis
 		movement = transform.TransformDirection(movement);
 		rb.MovePosition(transform.position + movement * speed * Time.fixedDeltaTime);
 ////		transform.rotation = Quaternion.Euler (0, newY, 0);
 
-		if((moveX == 0 && moveY == 0 && moveY == 0) && !isBoosted){
+		if((moveX == 0 && moveY == 0 && moveZ == 0) && !isBoosted){
 			moving = false;
 		} else{//not moving
 			moving = true;
@@ -123,10 +123,12 @@ public class PlayerController: MonoBehaviour {
 			}else if(!isBoosted && moving && !shielding && !charging){//boost if moving and not shielding and already boosted
 				camFollow.anim.SetBool("Boosting", true);
 				isBoosted = true;
+				anim.SetBool("Dashing", true);
 				charging = false;
 			}
 			speed = boostSpeed;
 		} else {
+			anim.SetBool("Dashing", false);
 			isBoosted = false;
 			charging = false;
 			anim.SetBool("Charging", false);
