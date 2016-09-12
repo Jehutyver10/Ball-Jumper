@@ -34,7 +34,11 @@ public class CameraFollow : MonoBehaviour {
 		Quaternion rotation = Quaternion.Euler(0, angle, 0);
 
 		transform.position = Vector3.SmoothDamp(transform.position, player.transform.position - (rotation * offset), ref velocity, smoothTime);
-		transform.LookAt(player.transform);
+		if(player.GetComponent<PlayerController>().target){
+			transform.LookAt(player.GetComponent<PlayerController>().target.transform);
+		}else{
+			transform.LookAt(player.transform);
+		}
 //		Quaternion fixedRotation =  Quaternion.Euler(transform.eulerAngles.x + camCorrection, transform.eulerAngles.y, transform.eulerAngles.z);
 //		transform.rotation = fixedRotation;
 	}
