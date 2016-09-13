@@ -3,7 +3,6 @@ using System.Collections;
 
 [RequireComponent(typeof(Projectile))]
 public class Blast : MonoBehaviour {
-	Rigidbody rb;
 	float speed;
 	public Enemy target;
 	float endTime, timeLimit = 5;
@@ -13,7 +12,6 @@ public class Blast : MonoBehaviour {
 		endTime= Time.time;
 
 		speed = GetComponent<Projectile>().speed;
-		rb = GetComponent<Rigidbody>();
 	}
 
 	void Awake(){

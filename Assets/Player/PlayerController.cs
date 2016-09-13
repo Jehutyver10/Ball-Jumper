@@ -343,13 +343,37 @@ public class PlayerController: MonoBehaviour {
 	}
 
 	void ShootBlast(Enemy[] EnemyArray){
+		List<Blast> blasts = new List<Blast>();
+		//sort enemies into lockable enemies;
+		List<Enemy> lockableEnemies = new List<Enemy>();
 		foreach(Enemy enemy in EnemyArray){
-			if(enemy.canBeHomedInOn == true){
-				GameObject shot = Instantiate(blast, transform.forward, Quaternion.identity) as GameObject;	
-				shot.GetComponent<Blast>().setTarget(enemy);
-				shot.GetComponent<Projectile>().SetShooter(this.gameObject);
+			if(enemy.canBeHomedInOn){
+				lockableEnemies.Add(enemy);
 			}
 		}
+		//generate six blasts to start
+		for(int i = 0; i <6; i++){
+			GameObject shot = Instantiate(blast, transform.forward, Quaternion.identity) as GameObject;	
+			shot.GetComponent<Projectile>().SetShooter(this.gameObject);
+			shot.transform.Translate(Vector3.left * 2);
+			blasts.Add(shot.GetComponent<Blast>());
+		}
+		if(lockableEnemies.Count < blasts.Count){//have multiple blasts on enemies if blsts outnumber enemies
+			for(int i = 0; i < blasts.Count; i++){
+				blasts[i].setTarget(lockableEnemies[i%lockableEnemies.Count]);
+			}
+		} else{
+			while(blasts.Count < lockableEnemies.Count){//match the blast count to the enemies
+				GameObject shot = Instantiate(blast, transform.forward, Quaternion.identity) as GameObject;	
+				shot.GetComponent<Projectile>().SetShooter(this.gameObject);
+				blasts.Add(shot.GetComponent<Blast>());
+			}
+			for(int i = 0; i < lockableEnemies.Count; i++){
+				blasts[i].setTarget(lockableEnemies[i]);
+			}
+		}
+		print(blasts.Count);
+
 	}
 	void ShootBomb(){
 		GameObject shot = Instantiate(bomb, transform.forward, Quaternion.identity) as GameObject;	
