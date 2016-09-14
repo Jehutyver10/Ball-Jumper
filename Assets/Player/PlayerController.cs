@@ -104,7 +104,12 @@ public class PlayerController: MonoBehaviour {
 			if(CrossPlatformInputManager.GetAxis("Right Horizontal") != 0){
 				float checkNewLockTime = Time.time;
 				if(checkNewLockTime - newLockTime > newLockLimit){
-					targeter = (int) CrossPlatformInputManager.GetAxis("Right Horizontal");
+					if(CrossPlatformInputManager.GetAxis("Right Horizontal") > 0){
+						targeter -= 1;
+					}else{
+						targeter += 1;
+					}
+
 					HandleLock();
 			}
 
@@ -196,14 +201,14 @@ public class PlayerController: MonoBehaviour {
 					}else{
 						target = targets[1];
 					}
-				}else if(Mathf.Round(CrossPlatformInputManager.GetAxis("Right Horizontal")) != 0){
+				}else if(CrossPlatformInputManager.GetAxis("Right Horizontal") != 0){
 					camFollow.SlowDamping();
 					if(targeter < 0){//index out of range
-						targeter = targets.Count() - 1;
-					}else{
-						targeter = 0;
+						targeter = targets.Count() -1;
+						print (targeter);
+
 					}
-					target = targets[targeter];
+					target = targets[targeter % targets.Count()];
 					
 					newLockTime = Time.time;
 				}
@@ -223,33 +228,32 @@ public class PlayerController: MonoBehaviour {
 
 	private GameObject[] Targets(GameObject[] targetsList){//sorts game objects in an array by distance
 		List<GameObject> sortedTargets = new List<GameObject>();
-		GameObject[] newArray = targetsList;
-		for(int i = 0; i <targetsList.Length; i++){
-			sortedTargets.Add(Target(newArray.ToList()));
-			List<GameObject> tempArray = new List<GameObject>();
-			for(int j = 0; j < newArray.Length; j++){
-				if(sortedTargets[i] != newArray[j]){
-					tempArray.Add(newArray[j]);
-				}
-			}
-			newArray = tempArray.ToArray();
-		}
-		return sortedTargets.ToArray();
-	}
-
-	private GameObject Target(List<GameObject> targets){
-		GameObject target = null;
-		float distance = 100000000;//cheating a bit with large distance
-		foreach(GameObject possibleTarget in targets){
+		foreach(GameObject possibleTarget in targetsList){
+			bool inserted = false;
+			if(sortedTargets.Count() == 0){
+				sortedTargets.Add(possibleTarget);
+			}else{
+			//get the angle of the possible target
 			float possibleDistance = AngleDir.AngleDirection(transform.forward, possibleTarget.transform.position, Vector3.up);
 			possibleDistance = possibleDistance * Vector3.Angle(possibleTarget.transform.position - transform.position, transform.forward);
-			if(possibleDistance < distance){
-				target = possibleTarget;
-				distance = possibleDistance;
+			print (possibleDistance);
+			for(int i = 0; i < sortedTargets.Count(); i++){
+				//get the distance to be compared to
+				float compDistance = AngleDir.AngleDirection(transform.forward, sortedTargets[i].transform.position, Vector3.up);
+				compDistance = compDistance * Vector3.Angle(sortedTargets[i].transform.position - transform.position, transform.forward);
+				if(possibleDistance < compDistance){
+					sortedTargets.Insert(i, possibleTarget);
+					inserted = true;
+					break;
+				}
 			}
+			sortedTargets.Add(possibleTarget);
 		}
-		return target;
-	}
+	}	
+		return sortedTargets.ToArray();
+}
+
+
 	void AllowShoot(){
 		canAttack = true;
 
@@ -372,7 +376,6 @@ public class PlayerController: MonoBehaviour {
 				blasts[i].setTarget(lockableEnemies[i]);
 			}
 		}
-		print(blasts.Count);
 
 	}
 	void ShootBomb(){
