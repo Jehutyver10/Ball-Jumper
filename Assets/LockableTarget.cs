@@ -1,0 +1,19 @@
+﻿using UnityEngine;
+using System.Collections;
+
+public class LockableTarget : MonoBehaviour {
+	public float positionFromPlayer;
+	// Use this for initialization
+	void Start () {
+		
+		gameObject.tag = "Lockable";
+	}
+
+	public void setPositionFromPlayer(GameObject player){
+		positionFromPlayer = transform.InverseTransformPoint(player.GetComponent<PlayerController>().transform.position).x;
+	}
+	// Update is called once per frame
+	void Update () {
+	
+	}
+}

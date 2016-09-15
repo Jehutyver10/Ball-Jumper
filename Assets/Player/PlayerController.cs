@@ -44,10 +44,9 @@ public class PlayerController: MonoBehaviour {
 	}
 	void FixedUpdate () {
 		ControlPlayer();
-
-
-
 	}
+
+
 	void ControlPlayer(){
 		if(CanMove()){//can move while not charging or boosting
 			Move();
@@ -106,7 +105,7 @@ public class PlayerController: MonoBehaviour {
 				if(checkNewLockTime - newLockTime > newLockLimit){
 					if(CrossPlatformInputManager.GetAxis("Right Horizontal") > 0){
 						targeter -= 1;
-					}else{
+					}else if (CrossPlatformInputManager.GetAxis("Right Horizontal") < 0){
 						targeter += 1;
 					}
 
@@ -181,15 +180,12 @@ public class PlayerController: MonoBehaviour {
 
 	}
 
-	void FindTargets(){
-		targets = Targets(GameObject.FindGameObjectsWithTag("Lockable"));
-	}
 	void HandleLock(){
-		FindTargets();
+		targets = Targets(GameObject.FindGameObjectsWithTag("Lockable"));
 		if (isLocked == false) {//to lock on in the beginning
 			if(targets.Length >0){
 				camFollow.SlowDamping();
-				target = targets[targeter % targets.Count()];
+				target = targets[0];
 				isLocked = true;
 			}
 		} else {// to switch targets;
@@ -205,11 +201,11 @@ public class PlayerController: MonoBehaviour {
 					camFollow.SlowDamping();
 					if(targeter < 0){//index out of range
 						targeter = targets.Count() -1;
-						print (targeter);
 
 					}
 					target = targets[targeter % targets.Count()];
-					
+					print (target.name);
+
 					newLockTime = Time.time;
 				}
 			}
@@ -226,32 +222,15 @@ public class PlayerController: MonoBehaviour {
 	}
 
 
-	private GameObject[] Targets(GameObject[] targetsList){//sorts game objects in an array by distance
-		List<GameObject> sortedTargets = new List<GameObject>();
-		foreach(GameObject possibleTarget in targetsList){
-			bool inserted = false;
-			if(sortedTargets.Count() == 0){
-				sortedTargets.Add(possibleTarget);
-			}else{
-			//get the angle of the possible target
-			float possibleDistance = AngleDir.AngleDirection(transform.forward, possibleTarget.transform.position, Vector3.up);
-			possibleDistance = possibleDistance * Vector3.Angle(possibleTarget.transform.position - transform.position, transform.forward);
-			print (possibleDistance);
-			for(int i = 0; i < sortedTargets.Count(); i++){
-				//get the distance to be compared to
-				float compDistance = AngleDir.AngleDirection(transform.forward, sortedTargets[i].transform.position, Vector3.up);
-				compDistance = compDistance * Vector3.Angle(sortedTargets[i].transform.position - transform.position, transform.forward);
-				if(possibleDistance < compDistance){
-					sortedTargets.Insert(i, possibleTarget);
-					inserted = true;
-					break;
-				}
-			}
-			sortedTargets.Add(possibleTarget);
+	private GameObject[] Targets(GameObject[] targetsList){//sorts game objects in an array from left to right
+		foreach(GameObject target in targetsList){
+			target.GetComponent<LockableTarget>().setPositionFromPlayer(gameObject);
 		}
-	}	
-		return sortedTargets.ToArray();
+		targetsList = targetsList.ToList().OrderBy(go => go.GetComponent<LockableTarget>().positionFromPlayer).ToArray();
+
+		return targetsList;
 }
+
 
 
 	void AllowShoot(){

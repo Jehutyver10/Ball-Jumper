@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 [RequireComponent (typeof (Health))]
-public class Enemy : MonoBehaviour {
+public class Enemy : LockableTarget {
 	public bool canBeHomedInOn;
 	Health health;
 	// Use this for initialization
