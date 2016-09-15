@@ -10,7 +10,7 @@ public class LockableTarget : MonoBehaviour {
 	}
 
 	public void setPositionFromPlayer(GameObject player){
-		positionFromPlayer = transform.InverseTransformPoint(player.GetComponent<PlayerController>().transform.position).x;
+		positionFromPlayer = transform.InverseTransformPoint(player.transform.position).x;
 	}
 	// Update is called once per frame
 	void Update () {

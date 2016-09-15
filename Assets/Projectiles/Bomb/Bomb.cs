@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-[RequireComponent(typeof(Projectile))]
-public class Bomb : MonoBehaviour {
+public class Bomb : Projectile {
 	float initialDamage;
 	Vector3 forward;
 	PlayerController player;
@@ -51,6 +50,10 @@ public class Bomb : MonoBehaviour {
 		}
 	}
 	void OnTriggerEnter(Collider col){
+		if(col.GetComponent<Health>()){
+			col.GetComponent<Health>().TakeDamage(damage);
+			Destroy(gameObject);
+		}
 		player.canBomb = true;
 	}
 	public void SetDamage(float damage){
@@ -59,10 +62,10 @@ public class Bomb : MonoBehaviour {
 	void Shoot(){
 		if(player.target){
 			transform.LookAt(player.target.transform, Vector3.up);
-			GetComponent<Rigidbody>().AddForce(transform.forward * GetComponent<Projectile>().speed);
+			GetComponent<Rigidbody>().AddForce(transform.forward * speed);
 
 		}else{
-			GetComponent<Rigidbody>().AddForce(forward * GetComponent<Projectile>().speed);
+			GetComponent<Rigidbody>().AddForce(forward * speed);
 		}
 		//Quaternion q = Quaternion.FromToRotation(Vector3.up, forward);
 		//transform.rotation = q * transform.rotation;

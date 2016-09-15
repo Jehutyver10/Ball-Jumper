@@ -191,20 +191,27 @@ public class PlayerController: MonoBehaviour {
 		} else {// to switch targets;
 			if(targets.Length > 1){
 				if(Mathf.Round(CrossPlatformInputManager.GetAxis("LockOn")) > 0){
-					camFollow.SlowDamping();
 					if(target != targets[0]){
 						target = targets[0];
 					}else{
 						target = targets[1];
 					}
 				}else if(CrossPlatformInputManager.GetAxis("Right Horizontal") != 0){
-					camFollow.SlowDamping();
+					int targetPos = System.Array.IndexOf(targets, target);
+					if(CrossPlatformInputManager.GetAxis("Right Horizontal") > 0){
+						if(targetPos == 0){
+							target = targets[targets.Count() - 1];
+						}else{
+							target = targets[targetPos - 1];
+						}
+					}else{
+						target = targets[targetPos + 1];
+					}
 					if(targeter < 0){//index out of range
 						targeter = targets.Count() -1;
 
 					}
 					target = targets[targeter % targets.Count()];
-					print (target.name);
 
 					newLockTime = Time.time;
 				}
@@ -223,12 +230,12 @@ public class PlayerController: MonoBehaviour {
 
 
 	private GameObject[] Targets(GameObject[] targetsList){//sorts game objects in an array from left to right
+		GameObject[] sortedList;
 		foreach(GameObject target in targetsList){
-			target.GetComponent<LockableTarget>().setPositionFromPlayer(gameObject);
+			target.GetComponent<LockableTarget>().setPositionFromPlayer(camFollow.gameObject);
 		}
-		targetsList = targetsList.ToList().OrderBy(go => go.GetComponent<LockableTarget>().positionFromPlayer).ToArray();
-
-		return targetsList;
+		sortedList = targetsList.ToList().OrderBy(go => go.GetComponent<LockableTarget>().positionFromPlayer).ToArray();
+		return sortedList;
 }
 
 
@@ -341,7 +348,7 @@ public class PlayerController: MonoBehaviour {
 			shot.transform.Translate(Vector3.left * 2);
 			blasts.Add(shot.GetComponent<Blast>());
 		}
-		if(lockableEnemies.Count < blasts.Count){//have multiple blasts on enemies if blsts outnumber enemies
+		if(lockableEnemies.Count < blasts.Count && lockableEnemies.Count != 0){//have multiple blasts on enemies if blsts outnumber enemies
 			for(int i = 0; i < blasts.Count; i++){
 				blasts[i].setTarget(lockableEnemies[i%lockableEnemies.Count]);
 			}
