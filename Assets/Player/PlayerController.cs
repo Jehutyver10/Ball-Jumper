@@ -267,7 +267,7 @@ public class PlayerController: MonoBehaviour {
 				UseSubweapon();
 			}else if(CrossPlatformInputManager.GetButton("Shield")){//shielding
 				canAttack = false;
-				UseShield();
+				Shield();
 			}
 		} else{
 			if(shielding){
@@ -281,7 +281,7 @@ public class PlayerController: MonoBehaviour {
 		}
 	}
 
-	void UseShield(){
+	void Shield(){
 		shielding = true;
 		normalSpeed = normalSpeed/2;
 	}
@@ -370,6 +370,7 @@ public class PlayerController: MonoBehaviour {
 		canBomb = false;
 		makingBomb = true;
 	}
+
 	void ShootBullet(){
 		hand = GameObject.Find("EthanRightHand").transform;
 		GameObject shot = Instantiate(bullet, hand.position + transform.forward, Quaternion.identity) as GameObject;
