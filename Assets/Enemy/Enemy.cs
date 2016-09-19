@@ -7,6 +7,8 @@ public class Enemy : LockableTarget {
 	public GameObject laser;
 	Health health;
 
+	bool alive = false;
+
 	private GameObject target;
 	// Use this for initialization
 
@@ -27,8 +29,13 @@ public class Enemy : LockableTarget {
 	void Update(){
 		transform.LookAt(target.transform);
 		float probability = Time.deltaTime * shotsPerSecond;
-		if(Random.value < probability){
+		if(Random.value < probability && alive){
 			Shoot();
+		}
+
+		//TODO remove this in final version; it's only for testing
+		if(Input.GetButtonDown("Activate Enemies")){
+			alive = !alive;
 		}
 	}
 
