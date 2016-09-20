@@ -274,6 +274,7 @@ public class PlayerController: MonoBehaviour {
 
 				if(!CrossPlatformInputManager.GetButton("Shield")){
 					shielding = false;
+					anim.SetBool("Shielding", false);
 					canAttack = true;
 					normalSpeed = normalSpeed * 2;
 				}
@@ -283,6 +284,7 @@ public class PlayerController: MonoBehaviour {
 
 	void Shield(){
 		shielding = true;
+		anim.SetBool("Shielding", true);
 		normalSpeed = normalSpeed/2;
 	}
 

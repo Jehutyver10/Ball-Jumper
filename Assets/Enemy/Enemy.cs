@@ -3,7 +3,7 @@ using System.Collections;
 [RequireComponent (typeof (Health))]
 public class Enemy : LockableTarget {
 	public bool canBeHomedInOn;
-	public float shotsPerSecond;
+	public float shotsPerSecond, meleeLimit, detectionRange;
 	public GameObject laser;
 	Health health;
 
@@ -29,9 +29,22 @@ public class Enemy : LockableTarget {
 	void Update(){
 		transform.LookAt(target.transform);
 		float probability = Time.deltaTime * shotsPerSecond;
-		if(Random.value < probability && alive){
-			Shoot();
+		if(Vector3.Distance(target.transform.position, transform.position) < detectionRange){//check if player is within enemy's detection range
+			alive = true;
+		}else{
+			alive = false;
 		}
+		if(Vector3.Distance(target.transform.position, transform.position) > meleeLimit && alive	){ //check if outside melee limit
+			if(Random.value < probability){
+				Shoot();
+			}else{
+				print("Melee attacking");
+			}
+		}
+
+
+
+
 
 		//TODO remove this in final version; it's only for testing
 		if(Input.GetButtonDown("Activate Enemies")){
