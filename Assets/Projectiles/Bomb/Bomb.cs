@@ -50,9 +50,10 @@ public class Bomb : Projectile {
 		}
 	}
 	void OnTriggerEnter(Collider col){
-		if(col.GetComponent<Health>()){
+		if(col.GetComponentInParent<Health>()){
+			col.GetComponentInParent<Health>().TakeDamage(damage);
+		}else if(col.GetComponent<Health>()){
 			col.GetComponent<Health>().TakeDamage(damage);
-			Destroy(gameObject);
 		}
 		player.canBomb = true;
 	}
