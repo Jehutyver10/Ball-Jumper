@@ -13,11 +13,8 @@ public class Weapon : MonoBehaviour {
 	void Update () {
 	
 	}
-	public void Activate(){
-		active = true;
-	}
-	public void Deactivate(){
-		active = false;
+	public void ActivateOrDeactivate(){
+		active = !active;
 	}
 
 	void OnTriggerEnter(Collider col){
