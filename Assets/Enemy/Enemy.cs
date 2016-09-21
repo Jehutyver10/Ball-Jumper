@@ -63,4 +63,5 @@ public class Enemy : LockableTarget {
 		shot.GetComponent<Rigidbody>().AddForce(transform.forward * shot.GetComponent<Projectile>().speed);
 
 	}
+
 }

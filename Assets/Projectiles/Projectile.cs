@@ -20,8 +20,6 @@ public class Projectile : MonoBehaviour {
 		print(col.gameObject.name);
 		if(col.GetComponentInParent<Health>()){
 			col.GetComponentInParent<Health>().TakeDamage(damage);
-		}else if(col.GetComponent<Health>()){
-			col.GetComponent<Health>().TakeDamage(damage);
 		}
 		Destroy(gameObject);
 	}
