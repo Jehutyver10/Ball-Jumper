@@ -1,17 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-[RequireComponent(typeof(Projectile))]
-public class Blast : MonoBehaviour {
-	float speed;
+public class Blast : Projectile {
 	public Enemy target;
 	float endTime, timeLimit = 5;
 
 	// Use this for initialization
 	void Start () {
 		endTime= Time.time;
-
-		speed = GetComponent<Projectile>().speed;
+	
 	}
 
 	void Awake(){
@@ -35,13 +32,6 @@ public class Blast : MonoBehaviour {
 	public void setTarget(Enemy enemy){
 		target = enemy;
 		}
-
-	void OnTriggerEnter(Collider col){
-		if(col.gameObject.GetComponent<Enemy>()){
-
-		}
-
-	}
 
 
 }

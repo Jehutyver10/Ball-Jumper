@@ -35,14 +35,21 @@ public class CameraFollow : MonoBehaviour {
 
 		transform.position = Vector3.SmoothDamp(transform.position, player.transform.position - (rotation * offset), ref velocity, smoothTime);
 		if(player.GetComponent<PlayerController>().target){
-			transform.LookAt(player.GetComponent<PlayerController>().target.transform);
+			SlowLookAt(player.GetComponent<PlayerController>().target.transform);
 		}else{
-			transform.LookAt(player.transform);
+			SlowLookAt(player.transform);
 		}
 //		Quaternion fixedRotation =  Quaternion.Euler(transform.eulerAngles.x + camCorrection, transform.eulerAngles.y, transform.eulerAngles.z);
 //		transform.rotation = fixedRotation;
 	}
 
+	public void SlowLookAt(Transform tar){
+		Vector3 direction = tar.position - transform.position;
+		direction.y = 0;
+		Quaternion rot = Quaternion.LookRotation(direction);
+		transform.rotation = Quaternion.Slerp(transform.rotation, rot, damping * Time.deltaTime);
+
+	}
 	public void AdjustDamping(){
 		if(damping <adjustedDamp){
 			checkTime = Time.time;

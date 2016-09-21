@@ -6,7 +6,7 @@ public class Projectile : MonoBehaviour {
 	public float speed = 1000, damage = 1;	// Use this for initialization
 	public bool isChargeAttack;//
 
-	private GameObject shooter;
+	public GameObject shooter;
 	void Start () {
 
 	}
@@ -17,10 +17,13 @@ public class Projectile : MonoBehaviour {
 	}
 
 	void OnTriggerEnter(Collider col){
-		if(col.GetComponent<Health>()){
+		print(col.gameObject.name);
+		if(col.GetComponentInParent<Health>()){
+			col.GetComponentInParent<Health>().TakeDamage(damage);
+		}else if(col.GetComponent<Health>()){
 			col.GetComponent<Health>().TakeDamage(damage);
-			Destroy(gameObject);
 		}
+		Destroy(gameObject);
 	}
 
 	public void SetShooter(GameObject owner){

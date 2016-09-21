@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-[RequireComponent(typeof(Projectile))]
-public class Bullet : MonoBehaviour {
+public class Bullet : Projectile {
 
 	// Use this for initialization
 	void Start () {

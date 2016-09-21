@@ -22,7 +22,9 @@ public class Weapon : MonoBehaviour {
 
 	void OnTriggerEnter(Collider col){
 		if(active){
-			if(col.GetComponent<Health>()){
+			if(col.GetComponentInParent<Health>()){
+				col.GetComponentInParent<Health>().TakeDamage(damage);
+			}else if(col.GetComponent<Health>()){
 				col.GetComponent<Health>().TakeDamage(damage);
 			}
 		}
