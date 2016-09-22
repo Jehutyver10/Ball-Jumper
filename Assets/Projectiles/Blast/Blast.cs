@@ -21,6 +21,7 @@ public class Blast : Projectile {
 			transform.position = Vector3.MoveTowards(transform.position, target.transform.position, speed * Time.deltaTime);
 			transform.LookAt(target.transform);
 		} else{
+			transform.LookAt(shooter.transform.forward);
 			transform.position = Vector3.MoveTowards(transform.position, transform.position + transform.forward, speed * Time.deltaTime);
 		}
 		if(Time.time - endTime > timeLimit){

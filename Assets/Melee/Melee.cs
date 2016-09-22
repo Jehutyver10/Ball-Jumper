@@ -21,7 +21,7 @@ public class Melee : StateMachineBehaviour {
 	override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
 		if(target){
 			if(Vector3.Distance(player.transform.position, target.transform.position) > MeleeLimit){
-				player.transform.Translate(Vector3.forward);
+				player.GetComponent<CharacterController>().Move(player.transform.forward * Time.deltaTime * player.GetComponent<PlayerController>().speed);
 			}
 		}
 

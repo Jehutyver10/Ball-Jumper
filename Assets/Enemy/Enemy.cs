@@ -19,12 +19,6 @@ public class Enemy : LockableTarget {
 		health = GetComponent<Health>();
 	}
 
-	void OnBecameInvisible() {
-       	canBeHomedInOn = false;
-    }
-    void OnBecameVisible() {
-       	canBeHomedInOn = true;
-    }
 	// Update is called once per frame
 	void Update(){
 		transform.LookAt(target.transform);
@@ -34,7 +28,7 @@ public class Enemy : LockableTarget {
 		}else{
 			alive = false;
 		}
-		if(Vector3.Distance(target.transform.position, transform.position) > meleeLimit && alive	){ //check if outside melee limit
+		if(Vector3.Distance(target.transform.position, transform.position) > meleeLimit && alive){ //check if outside melee limit
 			if(Random.value < probability){
 				Shoot();
 			}else{
@@ -57,6 +51,7 @@ public class Enemy : LockableTarget {
 	}
 	void Shoot(){
 		GameObject shot = Instantiate(laser, transform.position + transform.forward, Quaternion.identity) as GameObject;
+		shot.transform.parent = this.transform;
 		shot.GetComponent<Projectile>().SetShooter(this.gameObject);
 		Quaternion q = Quaternion.FromToRotation(Vector3.up, transform.forward);
 		shot.transform.rotation = q * shot.transform.rotation;

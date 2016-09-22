@@ -9,7 +9,6 @@ public class EnemyLaser : Projectile {
 	}
 
 	void OnTriggerEnter(Collider col){
-		print(col.gameObject.name);
 		if(col.GetComponentInParent<Health>() && col.GetComponentInParent<PlayerController>()){
 			if(!col.GetComponentInParent<PlayerController>().shielding){
 				col.GetComponentInParent<Health>().TakeDamage(damage);

@@ -6,7 +6,9 @@ public class Weapon : MonoBehaviour {
 	public bool active = false, knockback = false;
 	// Use this for initialization
 	void Start () {
-	
+		if(GetComponentInParent<PlayerController>()){
+			Physics.IgnoreCollision(GetComponentInParent<PlayerController>().GetComponent<Collider>(), GetComponent<Collider>());
+		}
 	}
 	
 	// Update is called once per frame

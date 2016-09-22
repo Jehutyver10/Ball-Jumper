@@ -8,7 +8,6 @@ using UnityStandardAssets.CrossPlatformInput;
 public class PlayerController: MonoBehaviour {
 
 	private bool isLocked, charging;
-	private Rigidbody rb;
 	private Camera cam;
 	private CameraFollow camFollow;
 	private float boostSpeed, normalSpeed, checkLock,
@@ -38,7 +37,6 @@ public class PlayerController: MonoBehaviour {
 
 		normalSpeed = speed;
 		boostSpeed = speed * boostMultiplier;
-		rb = GetComponent<Rigidbody> ();
 		camFollow = FindObjectOfType<CameraFollow>();
 //		newY = 0;
 	}
@@ -84,7 +82,7 @@ public class PlayerController: MonoBehaviour {
 		anim.SetFloat("Velocity Z", moveZ);
 		//translate movement by the rotation along the y axis
 		movement = transform.TransformDirection(movement);
-		rb.MovePosition(transform.position + movement * speed * Time.fixedDeltaTime);
+		GetComponent<CharacterController>().Move(movement * speed * Time.deltaTime);
 ////		transform.rotation = Quaternion.Euler (0, newY, 0);
 
 		if((moveX == 0 && moveY == 0 && moveZ == 0) && !isBoosted){
@@ -338,8 +336,9 @@ public class PlayerController: MonoBehaviour {
 		List<Blast> blasts = new List<Blast>();
 		//sort enemies into lockable enemies;
 		List<Enemy> lockableEnemies = new List<Enemy>();
+
 		foreach(Enemy enemy in EnemyArray){
-			if(enemy.canBeHomedInOn){
+			if(enemy.GetComponentInChildren<Renderer>().isVisible){
 				lockableEnemies.Add(enemy);
 			}
 		}
@@ -374,13 +373,13 @@ public class PlayerController: MonoBehaviour {
 	}
 
 	void ShootBullet(){
-		hand = GameObject.Find("EthanRightHand").transform;
+		hand = GetComponentInChildren<Shooter>().transform;
 		GameObject shot = Instantiate(bullet, hand.position + transform.forward, Quaternion.identity) as GameObject;
 		shot.transform.parent = GameObject.Find("Projectiles").transform;
 		shot.GetComponent<Projectile>().SetShooter(this.gameObject);
 		Quaternion q = Quaternion.FromToRotation(Vector3.up, transform.forward);
 		shot.transform.rotation = q * shot.transform.rotation;
-		shot.GetComponent<Rigidbody>().AddForce(transform.forward * shot.GetComponent<Projectile>().speed);
+		shot.GetComponent<Rigidbody>().AddForce(transform.forward * shot.GetComponent<Projectile>().speed, ForceMode.Impulse);
 
 	}
 }

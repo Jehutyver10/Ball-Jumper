@@ -13,24 +13,20 @@ public class Projectile : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-	
+		
 	}
 
 	void OnTriggerEnter(Collider col){
-		print(col.gameObject.name);
 		if(col.GetComponentInParent<Health>()){
 			col.GetComponentInParent<Health>().TakeDamage(damage);
 		}
-		Destroy(gameObject);
+		Destroy(this.gameObject);
 	}
 
 	public void SetShooter(GameObject owner){
 		shooter = owner;
-		if(GetComponent<Collider>()){
-			Physics.IgnoreCollision(GetComponent<Collider>(), shooter.GetComponentInChildren<Collider>());
-		} else if(GetComponentInChildren<Collider>()){
-			Physics.IgnoreCollision(GetComponentInChildren<Collider>(), shooter.GetComponentInChildren<Collider>());
-
+		foreach(Collider col in shooter.transform.root.GetComponentsInChildren<Collider>()){
+			Physics.IgnoreCollision(GetComponentInChildren<Collider>(), col);
 		}
 	}
 }
