@@ -118,18 +118,19 @@ public class PlayerController: MonoBehaviour {
 
 	void Charge(){
 		float boostCheck = CrossPlatformInputManager.GetAxis("Boost");
-		if (boostCheck > 0){//on R2 button press
-			if(!moving && !shielding){//charge if stationary and not shielding
+		if (boostCheck > 0 && !shielding){//on R2 button press
+			if(!moving){//charge if stationary and not shielding
 				charging = true;
 				anim.SetBool("Charging", true);
-			}else if(!isBoosted && moving && !shielding && !charging){//boost if moving and not shielding and already boosted
+			}else if(!isBoosted && moving && !charging){//boost if moving and not shielding and already boosted
 				camFollow.anim.SetBool("Boosting", true);
 				isBoosted = true;
 				anim.SetBool("Dashing", true);
 				charging = false;
+				speed = boostSpeed;
 			}
-			speed = boostSpeed;
 		} else {
+			print("cancel boost");
 			anim.SetBool("Dashing", false);
 			isBoosted = false;
 			charging = false;
@@ -273,8 +274,10 @@ public class PlayerController: MonoBehaviour {
 				if(!CrossPlatformInputManager.GetButton("Shield")){
 					shielding = false;
 					anim.SetBool("Shielding", false);
+					anim.SetBool("Dashing", false);
 					canAttack = true;
 					normalSpeed = normalSpeed * 2;
+
 				}
 			}
 		}
@@ -284,6 +287,7 @@ public class PlayerController: MonoBehaviour {
 		shielding = true;
 		anim.SetBool("Shielding", true);
 		normalSpeed = normalSpeed/2;
+		isBoosted = false;
 	}
 
 	void UseSubweapon(){
