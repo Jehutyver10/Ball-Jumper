@@ -5,7 +5,7 @@ public class Melee : StateMachineBehaviour {
 	Weapon weapon;
 
 
-	public float MeleeLimit = 5;
+	public float MeleeLimit = 4;
 
 	 // OnStateEnter is called when a transition starts and the state machine starts to evaluate this state
 	override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {

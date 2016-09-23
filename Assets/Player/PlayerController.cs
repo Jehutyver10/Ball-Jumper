@@ -10,12 +10,14 @@ public class PlayerController: MonoBehaviour {
 	private bool isLocked, charging;
 	private Camera cam;
 	private CameraFollow camFollow;
-	private float boostSpeed, normalSpeed, checkLock,
-	lockOffTime, newLockTime; 
+	private float boostSpeed, normalSpeed, checkLock, lockOffTime, newLockTime; 
+	private CharacterController charCon;
 	private int targeter;
 	private Transform hand;
 	private GameObject[] targets;
 	private Weapon weapon;
+	private Vector3 movement;
+	private ParticleSystem particles;
 
 	public Animator anim;
 	public GameObject bullet, bomb, blast, target;
@@ -25,6 +27,10 @@ public class PlayerController: MonoBehaviour {
 	public bool isBoosted, moving, canBomb, canAttack = true, shielding = false, makingBomb = false;
 
 	void Start (){
+		particles = GetComponentInChildren<ParticleSystem>();
+		particles.startLifetime = 1f;
+		//movement = Vector3.zero;
+		charCon = GetComponent<CharacterController>();
 		weapon = GetComponentInChildren<Weapon>();
 		anim = GetComponent<Animator>();
 		targeter = 0;
@@ -40,14 +46,17 @@ public class PlayerController: MonoBehaviour {
 		camFollow = FindObjectOfType<CameraFollow>();
 //		newY = 0;
 	}
-	void FixedUpdate () {
+	void Update(){
 		ControlPlayer();
+	}
+	void FixedUpdate () {
+		charCon.Move(movement * speed * Time.deltaTime);
 	}
 
 
 	void ControlPlayer(){
 		if(CanMove()){//can move while not charging or boosting
-			Move();
+			GetMovement();
 		}
 		Charge();
 		RightStick();
@@ -70,25 +79,26 @@ public class PlayerController: MonoBehaviour {
 	}
 
 
-	void Move(){
+	void GetMovement(){
 		float moveY = 0;
 		if(CrossPlatformInputManager.GetButton("Altitude")){
 			moveY = CrossPlatformInputManager.GetAxis("Altitude");
 		}
 		float moveX = CrossPlatformInputManager.GetAxis ("Horizontal");
 		float moveZ = CrossPlatformInputManager.GetAxis ("Vertical");
-		Vector3 movement = new Vector3 (moveX, moveY, moveZ);
+		movement = new Vector3 (moveX, moveY, moveZ);
 		anim.SetFloat("Velocity X", moveX);
 		anim.SetFloat("Velocity Z", moveZ);
 		//translate movement by the rotation along the y axis
 		movement = transform.TransformDirection(movement);
-		GetComponent<CharacterController>().Move(movement * speed * Time.deltaTime);
 ////		transform.rotation = Quaternion.Euler (0, newY, 0);
 
 		if((moveX == 0 && moveY == 0 && moveZ == 0) && !isBoosted){
 			moving = false;
+			particles.startLifetime = 1;
 		} else{//not moving
 			moving = true;
+			particles.startLifetime = 0.05f;
 		}
 
 
