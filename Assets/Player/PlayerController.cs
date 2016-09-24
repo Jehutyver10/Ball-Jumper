@@ -169,7 +169,6 @@ public class PlayerController: MonoBehaviour {
 			}
 		}
 		if (isLocked == true) {
-			print(target.name);
 			if(target){
 				transform.LookAt (target.transform);
 			}
