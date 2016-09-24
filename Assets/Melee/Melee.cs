@@ -3,7 +3,7 @@ using System.Collections;
 public class Melee : StateMachineBehaviour {
 	GameObject target, player;
 	Weapon weapon;
-
+	public bool isCombo, isDashAttack, isChargeAttack;
 
 	public float MeleeLimit = 4;
 

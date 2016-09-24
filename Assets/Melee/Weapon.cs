@@ -30,6 +30,11 @@ public class Weapon : MonoBehaviour {
 			if(col.GetComponentInParent<Health>()){
 				col.GetComponentInParent<Health>().TakeDamage(damage);
 			}
+			if(col.GetComponent<EnemyWeapon>()){
+				if(col.GetComponent<EnemyWeapon>().isActive){
+					SendMessageUpwards("OnWeaponsClash");
+				}
+			}
 			if(col.GetComponentInParent<Rigidbody>() && knockback){//checks if this attack should and can knock the target back
 				col.GetComponentInParent<Rigidbody>().AddForce(transform.root.transform.forward * force, 
 				ForceMode.Impulse);

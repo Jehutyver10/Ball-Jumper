@@ -169,6 +169,7 @@ public class PlayerController: MonoBehaviour {
 			}
 		}
 		if (isLocked == true) {
+			print(target.name);
 			if(target){
 				transform.LookAt (target.transform);
 			}
@@ -320,6 +321,12 @@ public class PlayerController: MonoBehaviour {
 
 	}
 
+	void OnWeaponsClash(){
+		if(weapon.damage == weapon.comboDamage){
+			anim.SetTrigger("Clash");
+		}
+
+	}
 	void Shoot(){
 		if(!isBoosted && !charging){//stationary shot
 			anim.SetTrigger("Shoot Bullet");
