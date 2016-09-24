@@ -140,7 +140,6 @@ public class PlayerController: MonoBehaviour {
 				speed = boostSpeed;
 			}
 		} else {
-			print("cancel boost");
 			anim.SetBool("Dashing", false);
 			isBoosted = false;
 			charging = false;

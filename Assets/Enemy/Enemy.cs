@@ -53,8 +53,8 @@ public class Enemy : LockableTarget {
 		GameObject shot = Instantiate(laser, transform.position + transform.forward, Quaternion.identity) as GameObject;
 		shot.transform.parent = this.transform;
 		shot.GetComponent<Projectile>().SetShooter(this.gameObject);
-		Quaternion q = Quaternion.FromToRotation(Vector3.up, transform.forward);
-		shot.transform.rotation = q * shot.transform.rotation;
+		//Quaternion q = Quaternion.FromToRotation(Vector3.up, transform.forward);
+		//shot.transform.rotation = q * shot.transform.rotation;
 		shot.GetComponent<Rigidbody>().AddForce(transform.forward * shot.GetComponent<Projectile>().speed);
 
 	}
