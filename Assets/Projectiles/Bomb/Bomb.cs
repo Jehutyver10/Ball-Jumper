@@ -56,17 +56,21 @@ public class Bomb : Projectile {
 			col.GetComponent<Health>().TakeDamage(damage);
 		}
 		player.canBomb = true;
+		if(launched){
+			Destroy(gameObject);
+		}
 	}
+
 	public void SetDamage(float damage){
 		projectile.damage = damage;
 	}
 	void Shoot(){
 		if(player.target){
 			transform.LookAt(player.target.transform, Vector3.up);
-			GetComponent<Rigidbody>().AddForce(transform.forward * speed);
+			GetComponent<Rigidbody>().AddForce(transform.forward * speed, ForceMode.Impulse);
 
 		}else{
-			GetComponent<Rigidbody>().AddForce(forward * speed);
+			GetComponent<Rigidbody>().AddForce(forward * speed, ForceMode.Impulse);
 		}
 		//Quaternion q = Quaternion.FromToRotation(Vector3.up, forward);
 		//transform.rotation = q * transform.rotation;

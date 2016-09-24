@@ -8,15 +8,16 @@ using UnityStandardAssets.CrossPlatformInput;
 public class PlayerController: MonoBehaviour {
 
 	private bool isLocked, charging;
-	private Rigidbody rb;
 	private Camera cam;
 	private CameraFollow camFollow;
-	private float boostSpeed, normalSpeed, checkLock,
-	lockOffTime, newLockTime; 
+	private float boostSpeed, normalSpeed, checkLock, lockOffTime, newLockTime; 
+	private CharacterController charCon;
 	private int targeter;
 	private Transform hand;
 	private GameObject[] targets;
 	private Weapon weapon;
+	private Vector3 movement;
+	private ParticleSystem particles;
 
 	public Animator anim;
 	public GameObject bullet, bomb, blast, target;
@@ -26,6 +27,10 @@ public class PlayerController: MonoBehaviour {
 	public bool isBoosted, moving, canBomb, canAttack = true, shielding = false, makingBomb = false;
 
 	void Start (){
+		particles = GetComponentInChildren<ParticleSystem>();
+		particles.startLifetime = 1f;
+		//movement = Vector3.zero;
+		charCon = GetComponent<CharacterController>();
 		weapon = GetComponentInChildren<Weapon>();
 		anim = GetComponent<Animator>();
 		targeter = 0;
@@ -38,18 +43,20 @@ public class PlayerController: MonoBehaviour {
 
 		normalSpeed = speed;
 		boostSpeed = speed * boostMultiplier;
-		rb = GetComponent<Rigidbody> ();
 		camFollow = FindObjectOfType<CameraFollow>();
 //		newY = 0;
 	}
-	void FixedUpdate () {
+	void Update(){
 		ControlPlayer();
+	}
+	void FixedUpdate () {
+		charCon.Move(movement * speed * Time.deltaTime);
 	}
 
 
 	void ControlPlayer(){
 		if(CanMove()){//can move while not charging or boosting
-			Move();
+			GetMovement();
 		}
 		Charge();
 		RightStick();
@@ -72,25 +79,26 @@ public class PlayerController: MonoBehaviour {
 	}
 
 
-	void Move(){
+	void GetMovement(){
 		float moveY = 0;
 		if(CrossPlatformInputManager.GetButton("Altitude")){
 			moveY = CrossPlatformInputManager.GetAxis("Altitude");
 		}
 		float moveX = CrossPlatformInputManager.GetAxis ("Horizontal");
 		float moveZ = CrossPlatformInputManager.GetAxis ("Vertical");
-		Vector3 movement = new Vector3 (moveX, moveY, moveZ);
+		movement = new Vector3 (moveX, moveY, moveZ);
 		anim.SetFloat("Velocity X", moveX);
 		anim.SetFloat("Velocity Z", moveZ);
 		//translate movement by the rotation along the y axis
 		movement = transform.TransformDirection(movement);
-		rb.MovePosition(transform.position + movement * speed * Time.fixedDeltaTime);
 ////		transform.rotation = Quaternion.Euler (0, newY, 0);
 
 		if((moveX == 0 && moveY == 0 && moveZ == 0) && !isBoosted){
 			moving = false;
+			particles.startLifetime = 1;
 		} else{//not moving
 			moving = true;
+			particles.startLifetime = 0.05f;
 		}
 
 
@@ -120,18 +128,19 @@ public class PlayerController: MonoBehaviour {
 
 	void Charge(){
 		float boostCheck = CrossPlatformInputManager.GetAxis("Boost");
-		if (boostCheck > 0){//on R2 button press
-			if(!moving && !shielding){//charge if stationary and not shielding
+		if (boostCheck > 0 && !shielding){//on R2 button press
+			if(!moving){//charge if stationary and not shielding
 				charging = true;
 				anim.SetBool("Charging", true);
-			}else if(!isBoosted && moving && !shielding && !charging){//boost if moving and not shielding and already boosted
+			}else if(!isBoosted && moving && !charging){//boost if moving and not shielding and already boosted
 				camFollow.anim.SetBool("Boosting", true);
 				isBoosted = true;
 				anim.SetBool("Dashing", true);
 				charging = false;
+				speed = boostSpeed;
 			}
-			speed = boostSpeed;
 		} else {
+			print("cancel boost");
 			anim.SetBool("Dashing", false);
 			isBoosted = false;
 			charging = false;
@@ -275,8 +284,10 @@ public class PlayerController: MonoBehaviour {
 				if(!CrossPlatformInputManager.GetButton("Shield")){
 					shielding = false;
 					anim.SetBool("Shielding", false);
+					anim.SetBool("Dashing", false);
 					canAttack = true;
 					normalSpeed = normalSpeed * 2;
+
 				}
 			}
 		}
@@ -286,6 +297,7 @@ public class PlayerController: MonoBehaviour {
 		shielding = true;
 		anim.SetBool("Shielding", true);
 		normalSpeed = normalSpeed/2;
+		isBoosted = false;
 	}
 
 	void UseSubweapon(){
@@ -308,6 +320,12 @@ public class PlayerController: MonoBehaviour {
 
 	}
 
+	void OnWeaponsClash(){
+		if(weapon.damage == weapon.comboDamage){
+			anim.SetTrigger("Clash");
+		}
+
+	}
 	void Shoot(){
 		if(!isBoosted && !charging){//stationary shot
 			anim.SetTrigger("Shoot Bullet");
@@ -338,8 +356,9 @@ public class PlayerController: MonoBehaviour {
 		List<Blast> blasts = new List<Blast>();
 		//sort enemies into lockable enemies;
 		List<Enemy> lockableEnemies = new List<Enemy>();
+
 		foreach(Enemy enemy in EnemyArray){
-			if(enemy.canBeHomedInOn){
+			if(enemy.GetComponentInChildren<Renderer>().isVisible){
 				lockableEnemies.Add(enemy);
 			}
 		}
@@ -374,13 +393,13 @@ public class PlayerController: MonoBehaviour {
 	}
 
 	void ShootBullet(){
-		hand = GameObject.Find("EthanRightHand").transform;
+		hand = GetComponentInChildren<Shooter>().transform;
 		GameObject shot = Instantiate(bullet, hand.position + transform.forward, Quaternion.identity) as GameObject;
 		shot.transform.parent = GameObject.Find("Projectiles").transform;
 		shot.GetComponent<Projectile>().SetShooter(this.gameObject);
 		Quaternion q = Quaternion.FromToRotation(Vector3.up, transform.forward);
 		shot.transform.rotation = q * shot.transform.rotation;
-		shot.GetComponent<Rigidbody>().AddForce(transform.forward * shot.GetComponent<Projectile>().speed);
+		shot.GetComponent<Rigidbody>().AddForce(transform.forward * shot.GetComponent<Projectile>().speed, ForceMode.Impulse);
 
 	}
 }

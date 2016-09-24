@@ -16,7 +16,6 @@ public class Environment : MonoBehaviour {
 	void OnCollisionEnter(Collision collider){
 		
 		if(collider.gameObject.GetComponent<Projectile>()){
-			print ("Destroyed " + collider.gameObject.name + " by " + name);
 			Destroy(collider.gameObject);
 
 		}
