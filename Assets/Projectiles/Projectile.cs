@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-[RequireComponent(typeof(Rigidbody))]
 public class Projectile : MonoBehaviour {
 	public float speed = 1000, damage = 1;	// Use this for initialization
 	public bool isChargeAttack, isColliding;
