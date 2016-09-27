@@ -324,6 +324,7 @@ public class PlayerController: MonoBehaviour {
 		if(weapon.damage == weapon.comboDamage){
 			anim.SetTrigger("Clash");
 		}
+		print("Clashing");
 
 	}
 	void Shoot(){

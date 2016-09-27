@@ -5,7 +5,11 @@ public class Enemy : LockableTarget {
 	public bool canBeHomedInOn, alive = false;
 	public float shotsPerSecond, meleeLimit, detectionRange;
 	public GameObject laser;
+	public EnemyWeapon weapon;
+
+	Animator anim;
 	Health health;
+
 
 
 	private GameObject target;
@@ -15,7 +19,9 @@ public class Enemy : LockableTarget {
 		SetTarget();
 	}
 	void Start () {
+		anim = GetComponent<Animator>();
 		health = GetComponent<Health>();
+		weapon = GetComponentInChildren<EnemyWeapon>();
 	}
 
 	// Update is called once per frame
@@ -31,9 +37,7 @@ public class Enemy : LockableTarget {
 		if(Vector3.Distance(target.transform.position, transform.position) > meleeLimit && alive){ //check if outside melee limit
 			if(Random.value < probability){
 				Shoot();
-				print("shooting");
 			}else{
-				print("Melee attacking");
 			}
 		}
 
@@ -45,6 +49,12 @@ public class Enemy : LockableTarget {
 
 	void SetTarget(){
 		target = GameObject.FindObjectOfType<PlayerController>().gameObject;
+	}
+
+	void OnWeaponsClash(){
+		if(weapon.damage == weapon.comboDamage){
+			anim.SetTrigger("Clash");
+		}
 	}
 	void Shoot(){
 		GameObject shot = Instantiate(laser, transform.position + transform.forward, Quaternion.identity) as GameObject;

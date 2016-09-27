@@ -27,10 +27,10 @@ public class Weapon : MonoBehaviour {
 			print("hitting");
 			if(col.GetComponentInParent<Health>()){
 				col.GetComponentInParent<Health>().TakeDamage(damage);
-				active = false;
+				//active = false;
 			}
 			if(col.GetComponent<EnemyWeapon>()){
-				if(col.GetComponent<EnemyWeapon>().isActive){
+				if(col.GetComponent<EnemyWeapon>().active){
 					SendMessageUpwards("OnWeaponsClash");
 				}
 			}
