@@ -16,19 +16,18 @@ public class Weapon : MonoBehaviour {
 		isColliding = false;
 	
 	}
-	public void ActivateOrDeactivate(){
-		active = !active;
-	}
 
 	void OnTriggerEnter(Collider col){
-		if(isColliding){
-			return;
-		}
-		isColliding = true;
+//		if(isColliding){
+//			return;
+//		}
+//		isColliding = true;
 
 		if(active){
+			print("hitting");
 			if(col.GetComponentInParent<Health>()){
 				col.GetComponentInParent<Health>().TakeDamage(damage);
+				active = false;
 			}
 			if(col.GetComponent<EnemyWeapon>()){
 				if(col.GetComponent<EnemyWeapon>().isActive){

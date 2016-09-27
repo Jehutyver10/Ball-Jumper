@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 public class Melee : StateMachineBehaviour {
-	GameObject target, player;
+	GameObject target, player, weaponTrail;
 	Weapon weapon;
 	public bool isCombo, isDashAttack, isChargeAttack;
 
@@ -12,10 +12,12 @@ public class Melee : StateMachineBehaviour {
 		target = animator.GetComponent<PlayerController>().target;//finds the target of the player
 		player = animator.GetComponent<PlayerController>().gameObject;//finds player
 		weapon = animator.GetComponentInChildren<Weapon>(); //finds the player's weapon
+		weaponTrail = weapon.transform.FindChild("Player Weapon Trail").gameObject;
+		weapon.active = true;
+		weaponTrail.SetActive(true);
+		MeleeLimit = 2f;
 
-		weapon.ActivateOrDeactivate();
-	
-	}
+	}	
 		
 	// OnStateUpdate is called on each Update frame between OnStateEnter and OnStateExit callbacks
 	override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
@@ -29,7 +31,7 @@ public class Melee : StateMachineBehaviour {
 
 	// OnStateExit is called when a transition ends and the state machine finishes evaluating this state
 	override public void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
-		weapon.ActivateOrDeactivate();
+		weaponTrail.SetActive(false);
 	}
 
 	// OnStateMove is called right after Animator.OnAnimatorMove(). Code that processes and affects root motion should be implemented here

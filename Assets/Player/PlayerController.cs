@@ -51,6 +51,7 @@ public class PlayerController: MonoBehaviour {
 	}
 	void FixedUpdate () {
 		charCon.Move(movement * speed * Time.deltaTime);
+		camFollow.AdjustDamping();
 	}
 
 
@@ -61,7 +62,6 @@ public class PlayerController: MonoBehaviour {
 		Charge();
 		RightStick();
 		LockOn();
-		camFollow.AdjustDamping();
 		Attack();
 
 	}
@@ -239,6 +239,7 @@ public class PlayerController: MonoBehaviour {
 
 	private GameObject[] Targets(GameObject[] targetsList){//sorts game objects in an array from left to right
 		GameObject[] sortedList;
+
 		foreach(GameObject target in targetsList){
 			target.GetComponent<LockableTarget>().setPositionFromPlayer(camFollow.gameObject);
 		}
