@@ -14,7 +14,7 @@ public class EnemyWeapon : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-	
+
 	}
 
 	void OnTriggerEnter(Collider col){
@@ -24,15 +24,19 @@ public class EnemyWeapon : MonoBehaviour {
 //		isColliding = true;
 
 		if(active){
-			if(col.GetComponentInParent<Health>() && !col.GetComponent<Weapon>()){//avoid doing damage when weapon clashing
+//			if(col.transform.root.GetComponentInChildren<Weapon>()){
+//				print("Getting here");
+//
+//				if(col.transform.root.GetComponent<Animator>().GetBool("Can Clash")){
+//					SendMessageUpwards("OnWeaponsClash");
+//
+//				}
+//			}
+			if(col.GetComponentInParent<Health>() && active){//avoid doing damage when weapon clashing
 				col.GetComponentInParent<Health>().TakeDamage(damage);
 				active = false;
 			}
-			if(col.GetComponent<Weapon>()){
-				if(col.GetComponent<Weapon>().active){
-					SendMessageUpwards("OnWeaponsClash");
-				}
-			}
+		
 			if(col.GetComponentInParent<Rigidbody>() && knockback){//checks if this attack should and can knock the target back
 				col.GetComponentInParent<Rigidbody>().AddForce(transform.root.transform.forward * force, ForceMode.Impulse);
 					print("knocking back");

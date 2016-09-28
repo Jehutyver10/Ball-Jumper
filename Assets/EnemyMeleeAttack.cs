@@ -9,7 +9,9 @@ public class EnemyMeleeAttack : StateMachineBehaviour {
 		weapon = animator.GetComponentInChildren<EnemyWeapon>(); //finds the player's weapon
 		weaponTrail = weapon.transform.FindChild("Enemy Weapon Trail").gameObject;
 		weapon.active = true;
+		animator.SetBool("Can Clash", true);
 		weaponTrail.SetActive(true);
+
 
 	}
 

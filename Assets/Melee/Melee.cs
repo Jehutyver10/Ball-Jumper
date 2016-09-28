@@ -4,7 +4,6 @@ public class Melee : StateMachineBehaviour {
 	GameObject target, player, weaponTrail;
 	Weapon weapon;
 	public bool isCombo, isDashAttack, isChargeAttack;
-
 	public float MeleeLimit = 4;
 
 	 // OnStateEnter is called when a transition starts and the state machine starts to evaluate this state
@@ -15,6 +14,7 @@ public class Melee : StateMachineBehaviour {
 		weaponTrail = weapon.transform.FindChild("Player Weapon Trail").gameObject;
 		weapon.active = true;
 		weaponTrail.SetActive(true);
+		animator.SetBool("Can Clash", true);
 		MeleeLimit = 2f;
 
 	}	
@@ -32,6 +32,7 @@ public class Melee : StateMachineBehaviour {
 	// OnStateExit is called when a transition ends and the state machine finishes evaluating this state
 	override public void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
 		weaponTrail.SetActive(false);
+		weapon.active = false;
 	}
 
 	// OnStateMove is called right after Animator.OnAnimatorMove(). Code that processes and affects root motion should be implemented here

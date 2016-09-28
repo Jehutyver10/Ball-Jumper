@@ -54,6 +54,8 @@ public class Enemy : LockableTarget {
 	void OnWeaponsClash(){
 		if(weapon.damage == weapon.comboDamage){
 			anim.SetTrigger("Clash");
+			print("Clashing");
+
 		}
 	}
 	void Shoot(){
