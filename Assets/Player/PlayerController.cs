@@ -48,6 +48,7 @@ public class PlayerController: MonoBehaviour {
 	}
 	void Update(){
 		ControlPlayer();
+
 	}
 	void FixedUpdate () {
 		charCon.Move(movement * speed * Time.deltaTime);
