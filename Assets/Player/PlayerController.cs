@@ -10,7 +10,7 @@ public class PlayerController: MonoBehaviour {
 	private bool isLocked, charging;
 	private Camera cam;
 	private CameraFollow camFollow;
-	private float boostSpeed, normalSpeed, checkLock, lockOffTime, newLockTime; 
+	private float boostSpeed, normalSpeed, checkLock, lockOffTime, newLockTime, pseudoTime; 
 	private CharacterController charCon;
 	private int targeter;
 	private Transform hand;
@@ -19,6 +19,7 @@ public class PlayerController: MonoBehaviour {
 	private Vector3 movement;
 	private ParticleSystem particles;
 
+	public PseudoPlayer pseudo;
 	public Animator anim;
 	public GameObject bullet, bomb, blast, target;
 	public float speed = 150, newLockLimit = 1, rotationSpeed =1, meleeRange = 1;
@@ -27,6 +28,7 @@ public class PlayerController: MonoBehaviour {
 	public bool isBoosted, moving, canBomb, canAttack = true, shielding = false, makingBomb = false;
 
 	void Start (){
+		pseudoTime = Time.time;
 		particles = GetComponentInChildren<ParticleSystem>();
 		particles.startLifetime = 1f;
 		//movement = Vector3.zero;
@@ -48,11 +50,27 @@ public class PlayerController: MonoBehaviour {
 	}
 	void Update(){
 		ControlPlayer();
+		if(moving){
+			pseudoTime = Time.time;
+			if(!isLocked){
+				transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(movement), Time.deltaTime * 10);
+				if(Input.GetAxis("Right Horizontal") != 0){
+					AdjustPseudo();
+				}
+			}else{
+				pseudo.transform.rotation = transform.rotation;
+			}
+		}else{
+				AdjustPseudo();
+		}
 
 	}
 	void FixedUpdate () {
 		charCon.Move(movement * speed * Time.deltaTime);
 		camFollow.AdjustDamping();
+		pseudo.transform.position = transform.position;
+
+
 	}
 
 
@@ -91,7 +109,7 @@ public class PlayerController: MonoBehaviour {
 		anim.SetFloat("Velocity X", moveX);
 		anim.SetFloat("Velocity Z", moveZ);
 		//translate movement by the rotation along the y axis
-		movement = transform.TransformDirection(movement);
+		movement = pseudo.transform.TransformDirection(movement);
 ////		transform.rotation = Quaternion.Euler (0, newY, 0);
 
 		if((moveX == 0 && moveY == 0 && moveZ == 0) && !isBoosted){
@@ -107,7 +125,7 @@ public class PlayerController: MonoBehaviour {
 	void RightStick(){
 		if(!isLocked){
 			float rotateHorizontal = CrossPlatformInputManager.GetAxis("Right Horizontal");
-			transform.RotateAround (transform.localPosition, Vector3.up, rotateHorizontal * rotationSpeed);			
+			pseudo.transform.RotateAround (transform.localPosition, Vector3.up, rotateHorizontal * rotationSpeed);			
 		}else{
 			if(CrossPlatformInputManager.GetAxis("Right Horizontal") != 0){
 				float checkNewLockTime = Time.time;
@@ -126,6 +144,7 @@ public class PlayerController: MonoBehaviour {
 //		newY = transform.rotation.eulerAngles.y;
 
 	}
+
 
 	void Charge(){
 		float boostCheck = CrossPlatformInputManager.GetAxis("Boost");
@@ -402,5 +421,10 @@ public class PlayerController: MonoBehaviour {
 		shot.transform.rotation = q * shot.transform.rotation;
 		shot.GetComponent<Rigidbody>().AddForce(transform.forward * shot.GetComponent<Projectile>().speed, ForceMode.Impulse);
 
+	}
+
+	void AdjustPseudo(){
+		Vector3 newDir = Vector3.RotateTowards(pseudo.transform.forward, transform.forward, Time.deltaTime * 5, 5f);
+		pseudo.transform.rotation = Quaternion.LookRotation(newDir);
 	}
 }

@@ -7,7 +7,7 @@ public class CameraFollow : MonoBehaviour {
 	public float camCorrection;
 	public float smoothTime = 0.3F;
 
-	private float dampTime, checkTime;
+	private float dampTime, checkTime, distance;
 	private PlayerController player;
 	private Vector3 offset, velocity = Vector3.zero;
 
@@ -17,6 +17,7 @@ public class CameraFollow : MonoBehaviour {
 		player = FindObjectOfType<PlayerController>();
 		anim = GetComponent<Animator>();
 		offset =  player.transform.position - transform.position;
+		distance = Vector3.Distance(player.transform.position, transform.position);
 	}
 
 	
@@ -28,16 +29,15 @@ public class CameraFollow : MonoBehaviour {
 	void Follow(){
 	//sets the angle of the player's to be the camera's so that the camera is behind the player.
 		float currentAngle = transform.eulerAngles.y;
-		float desiredAngle = player.transform.eulerAngles.y;
+		float desiredAngle = player.pseudo.transform.eulerAngles.y;
 		//print("Current angle: " + currentAngle + ", Desired Angle: " + desiredAngle);
 		float angle = Mathf.LerpAngle(currentAngle, desiredAngle, Time.fixedTime * damping);
 		Quaternion rotation = Quaternion.Euler(0, angle, 0);
-
-		transform.position = Vector3.SmoothDamp(transform.position, player.transform.position - (rotation * offset), ref velocity, smoothTime);
+		transform.position = Vector3.SmoothDamp(transform.position, player.pseudo.transform.position - (rotation * offset), ref velocity, smoothTime);
 		if(player.target){
 			SlowLookAt(player.target.transform);
 		}else{
-			SlowLookAt(player.transform);
+			SlowLookAt(player.pseudo.transform);
 		}
 //		Quaternion fixedRotation =  Quaternion.Euler(transform.eulerAngles.x + camCorrection, transform.eulerAngles.y, transform.eulerAngles.z);
 //		transform.rotation = fixedRotation;
