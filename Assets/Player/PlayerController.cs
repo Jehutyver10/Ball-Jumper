@@ -58,10 +58,12 @@ public class PlayerController: MonoBehaviour {
 					AdjustPseudo();
 				}
 			}else{
-				pseudo.transform.rotation = transform.rotation;
+					pseudo.transform.rotation = transform.rotation;
 			}
 		}else{
-				AdjustPseudo();
+			if(isLocked){
+				//AdjustPseudo();
+			}
 		}
 
 	}
