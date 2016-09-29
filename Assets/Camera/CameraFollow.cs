@@ -8,13 +8,13 @@ public class CameraFollow : MonoBehaviour {
 	public float smoothTime = 0.3F;
 
 	private float dampTime, checkTime;
-	private GameObject player;
+	private PlayerController player;
 	private Vector3 offset, velocity = Vector3.zero;
 
 	// Use this for initialization
 	void Start () {
 		dampTime = Time.time;
-		player = FindObjectOfType<PlayerController>().gameObject;
+		player = FindObjectOfType<PlayerController>();
 		anim = GetComponent<Animator>();
 		offset =  player.transform.position - transform.position;
 	}
@@ -34,8 +34,8 @@ public class CameraFollow : MonoBehaviour {
 		Quaternion rotation = Quaternion.Euler(0, angle, 0);
 
 		transform.position = Vector3.SmoothDamp(transform.position, player.transform.position - (rotation * offset), ref velocity, smoothTime);
-		if(player.GetComponent<PlayerController>().target){
-			SlowLookAt(player.GetComponent<PlayerController>().target.transform);
+		if(player.target){
+			SlowLookAt(player.target.transform);
 		}else{
 			SlowLookAt(player.transform);
 		}
