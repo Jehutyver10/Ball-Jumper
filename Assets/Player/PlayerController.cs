@@ -183,6 +183,9 @@ public class PlayerController: MonoBehaviour {
 					lockOffTime = Time.time;
 					target = null;
 					isLocked = false;
+					anim.SetLayerWeight(anim.GetLayerIndex("Not Locked On"), 1);
+					anim.SetLayerWeight(anim.GetLayerIndex("Locked On"), 0);
+
 					camFollow.SlowDamping();
 				}
 			}else{
@@ -195,6 +198,9 @@ public class PlayerController: MonoBehaviour {
 			}
 			else{
 				isLocked = false;
+				anim.SetLayerWeight(anim.GetLayerIndex("Not Locked On"), 1);
+				anim.SetLayerWeight(anim.GetLayerIndex("Locked On"), 0);
+
 				transform.LookAt(transform.forward);
 				HandleLock();
 			}
@@ -217,6 +223,9 @@ public class PlayerController: MonoBehaviour {
 				camFollow.SlowDamping();
 				target = targets[0];
 				isLocked = true;
+				anim.SetLayerWeight(anim.GetLayerIndex("Locked On"), 1);
+				anim.SetLayerWeight(anim.GetLayerIndex("Not Locked On"), 0);
+
 			}
 		} else {// to switch targets;
 			if(targets.Length > 1){
