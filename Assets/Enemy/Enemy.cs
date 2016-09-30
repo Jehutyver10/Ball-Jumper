@@ -2,12 +2,15 @@
 using System.Collections;
 [RequireComponent (typeof (Health))]
 public class Enemy : LockableTarget {
-	public bool canBeHomedInOn;
+	public bool canBeHomedInOn, alive = false;
 	public float shotsPerSecond, meleeLimit, detectionRange;
 	public GameObject laser;
+	public EnemyWeapon weapon;
+
+	Animator anim;
 	Health health;
 
-	bool alive = false;
+
 
 	private GameObject target;
 	// Use this for initialization
@@ -16,29 +19,27 @@ public class Enemy : LockableTarget {
 		SetTarget();
 	}
 	void Start () {
+		anim = GetComponent<Animator>();
 		health = GetComponent<Health>();
+		weapon = GetComponentInChildren<EnemyWeapon>();
 	}
 
 	// Update is called once per frame
 	void Update(){
+
 		transform.LookAt(target.transform);
 		float probability = Time.deltaTime * shotsPerSecond;
-		if(Vector3.Distance(target.transform.position, transform.position) < detectionRange){//check if player is within enemy's detection range
+		if(Mathf.Abs(Vector3.Distance(target.transform.position, transform.position)) < detectionRange){//check if player is within enemy's detection range
 			alive = true;
-		}else{
+		}else{	
 			alive = false;
 		}
 		if(Vector3.Distance(target.transform.position, transform.position) > meleeLimit && alive){ //check if outside melee limit
 			if(Random.value < probability){
 				Shoot();
 			}else{
-				print("Melee attacking");
 			}
 		}
-
-
-
-
 
 		//TODO remove this in final version; it's only for testing
 		if(Input.GetButtonDown("Activate Enemies")){
@@ -49,12 +50,20 @@ public class Enemy : LockableTarget {
 	void SetTarget(){
 		target = GameObject.FindObjectOfType<PlayerController>().gameObject;
 	}
+
+	void OnWeaponsClash(){
+		if(weapon.damage == weapon.comboDamage){
+			anim.SetTrigger("Clash");
+			print("Clashing");
+
+		}
+	}
 	void Shoot(){
 		GameObject shot = Instantiate(laser, transform.position + transform.forward, Quaternion.identity) as GameObject;
 		shot.transform.parent = this.transform;
 		shot.GetComponent<Projectile>().SetShooter(this.gameObject);
-		Quaternion q = Quaternion.FromToRotation(Vector3.up, transform.forward);
-		shot.transform.rotation = q * shot.transform.rotation;
+		//Quaternion q = Quaternion.FromToRotation(Vector3.up, transform.forward);
+		//shot.transform.rotation = q * shot.transform.rotation;
 		shot.GetComponent<Rigidbody>().AddForce(transform.forward * shot.GetComponent<Projectile>().speed);
 
 	}

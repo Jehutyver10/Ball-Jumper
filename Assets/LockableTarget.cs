@@ -3,6 +3,7 @@ using System.Collections;
 
 public class LockableTarget : MonoBehaviour {
 	public float positionFromPlayer;
+	public bool grabbable = true, grabbed = false;
 	// Use this for initialization
 	void Start () {
 		

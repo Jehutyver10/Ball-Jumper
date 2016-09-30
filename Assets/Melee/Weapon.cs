@@ -3,7 +3,7 @@ using System.Collections;
 
 public class Weapon : MonoBehaviour {
 	public float damage = 100, comboDamage = 150,dashDamage = 200,  burstDamage = 500, force;
-	public bool active = false, knockback = false, isColliding = false;
+	public bool active = false, knockback = false, isColliding = false, canClash = false;
 	// Use this for initialization
 	void Start () {
 		if(GetComponentInParent<PlayerController>()){
@@ -16,28 +16,32 @@ public class Weapon : MonoBehaviour {
 		isColliding = false;
 	
 	}
-	public void ActivateOrDeactivate(){
-		active = !active;
-	}
 
 	void OnTriggerEnter(Collider col){
-		if(isColliding){
-			return;
-		}
-		isColliding = true;
+//		if(isColliding){
+//			return;
+//		}
+//		isColliding = true;
 
 		if(active){
-			if(col.GetComponentInParent<Health>()){
-				col.GetComponentInParent<Health>().TakeDamage(damage);
-			}
-			if(col.GetComponent<EnemyWeapon>()){
-				if(col.GetComponent<EnemyWeapon>().isActive){
+			print("hitting");
+			if(col.transform.root.GetComponentInChildren<EnemyWeapon>()){
+				if(col.transform.root.GetComponent<Animator>().GetBool("Can Clash")){
 					SendMessageUpwards("OnWeaponsClash");
+					col.SendMessageUpwards("OnWeaponsClash");
+					active = false;
+					col.transform.root.GetComponentInChildren<EnemyWeapon>().active = false;
+					return;
 				}
 			}
+			if(col.GetComponentInParent<Health>() && active){
+				col.GetComponentInParent<Health>().TakeDamage(damage);
+				active = false;
+			}
+
 			if(col.GetComponentInParent<Rigidbody>() && knockback){//checks if this attack should and can knock the target back
-				col.GetComponentInParent<Rigidbody>().AddForce(transform.root.transform.forward * force, 
-				ForceMode.Impulse);
+				col.GetComponentInParent<Rigidbody>().AddForce(transform.root.transform.forward * force, ForceMode.Impulse);
+					print("knocking back");
 			}
 		}
 	}
