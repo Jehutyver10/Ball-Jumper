@@ -18,5 +18,8 @@ public class Health : MonoBehaviour {
 		if(health <= 0f){
 			Destroy(gameObject);
 		}
+		if(GetComponent<Animator>()){
+			GetComponent<Animator>().SetTrigger("Take Damage");
+		}
 	}
 }

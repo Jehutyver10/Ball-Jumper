@@ -34,10 +34,14 @@ public class Enemy : LockableTarget {
 		}else{	
 			alive = false;
 		}
-		if(Vector3.Distance(target.transform.position, transform.position) > meleeLimit && alive){ //check if outside melee limit
-			if(Random.value < probability){
-				Shoot();
+		if(alive){
+			if(Vector3.Distance(target.transform.position, transform.position) > meleeLimit){ //check if outside melee limit
+				anim.ResetTrigger("Melee Attack");
+				if(Random.value < probability){
+					Shoot();
+				}
 			}else{
+				anim.SetTrigger("Melee Attack");
 			}
 		}
 

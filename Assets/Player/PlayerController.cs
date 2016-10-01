@@ -107,13 +107,14 @@ public class PlayerController: MonoBehaviour {
 		}
 		float moveX = CrossPlatformInputManager.GetAxis ("Horizontal");
 		float moveZ = CrossPlatformInputManager.GetAxis ("Vertical");
-		movement = new Vector3 (moveX, moveY, moveZ);
+		movement = new Vector3 (moveX, 0, moveZ);
 		anim.SetFloat("Velocity X", moveX);
 		anim.SetFloat("Velocity Z", moveZ);
 		//translate movement by the rotation along the y axis
 		movement = pseudo.transform.TransformDirection(movement);
 ////		transform.rotation = Quaternion.Euler (0, newY, 0);
-
+		movement = new Vector3(movement.x, moveY, movement.z);
+		//TODO: fix altitudep
 		if((moveX == 0 && moveY == 0 && moveZ == 0) && !isBoosted){
 			moving = false;
 			particles.startLifetime = 1;
