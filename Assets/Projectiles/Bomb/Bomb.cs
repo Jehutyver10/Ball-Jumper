@@ -41,6 +41,7 @@ public class Bomb : Projectile {
 			anim.applyRootMotion = true;
 			canFire = true;
 			launched = true;
+			transform.parent = null;
 	}
 
 	void OnCollisionEnter(Collision col){

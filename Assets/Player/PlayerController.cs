@@ -427,7 +427,6 @@ public class PlayerController: MonoBehaviour {
 	void ShootBullet(){
 		hand = GetComponentInChildren<Shooter>().transform;
 		GameObject shot = Instantiate(bullet, hand.position + transform.forward, Quaternion.identity) as GameObject;
-		shot.transform.parent = GameObject.Find("Projectiles").transform;
 		shot.GetComponent<Projectile>().SetShooter(this.gameObject);
 		Quaternion q = Quaternion.FromToRotation(Vector3.up, transform.forward);
 		shot.transform.rotation = q * shot.transform.rotation;
