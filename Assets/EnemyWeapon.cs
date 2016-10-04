@@ -3,9 +3,11 @@ using System.Collections;
 
 public class EnemyWeapon : MonoBehaviour {
 	public bool active = false, knockback = false;
-	public float damage = 0, comboDamage = 0, force = 0;
+	public float damage = 0, comboDamage = 0, burstDamage = 0, force = 0;
+	public int shieldCounter;
 	// Use this for initialization
 	void Start () {
+		shieldCounter = 0;
 		//find all the weapons that the enemy has
 //		for(int i = 0; i < transform.root.GetComponentsInChildren<EnemyWeapon>().Length; i++){
 //			transform.root.GetComponentsInChildren<EnemyWeapon>()[i].name = transform.root.GetComponentsInChildren<EnemyWeapon>()[i].name + " " + i.ToString(); 
@@ -32,8 +34,14 @@ public class EnemyWeapon : MonoBehaviour {
 //
 //				}
 //			}
-			if(col.GetComponentInParent<Health>() && active){//avoid doing damage when weapon clashing
-				col.GetComponentInParent<Health>().TakeDamage(damage);
+			if(col.GetComponentInParent<PlayerController>() && active){//avoid doing damage when weapon clashing
+				if(col.GetComponentInParent<PlayerController>().shielding){
+					shieldCounter += 1;
+					print(shieldCounter);
+				}else{
+					col.GetComponentInParent<Health>().TakeDamage(damage);
+					shieldCounter = 0;
+				}
 				active = false;
 			}
 		

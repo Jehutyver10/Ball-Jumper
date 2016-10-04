@@ -6,6 +6,7 @@ public class Enemy : LockableTarget {
 	public float shotsPerSecond, meleeLimit, detectionRange;
 	public GameObject laser;
 	public EnemyWeapon weapon;
+	public PseudoEnemy pseudo;
 
 	Animator anim;
 	Health health;
@@ -22,12 +23,13 @@ public class Enemy : LockableTarget {
 		anim = GetComponent<Animator>();
 		health = GetComponent<Health>();
 		weapon = GetComponentInChildren<EnemyWeapon>();
+		pseudo = GetComponentInChildren<PseudoEnemy>();
 	}
 
 	// Update is called once per frame
 	void Update(){
 
-		transform.LookAt(target.transform);
+		transform.LookAt(target.GetComponent<PlayerController>().pseudo.transform);
 		float probability = Time.deltaTime * shotsPerSecond;
 		if(Mathf.Abs(Vector3.Distance(target.transform.position, transform.position)) < detectionRange){//check if player is within enemy's detection range
 			alive = true;

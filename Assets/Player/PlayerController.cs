@@ -19,15 +19,17 @@ public class PlayerController: MonoBehaviour {
 	private Vector3 movement;
 	private ParticleSystem particles;
 
+	public Rigidbody rb;
 	public PseudoPlayer pseudo;
 	public Animator anim;
 	public GameObject bullet, bomb, blast, target;
-	public float speed = 150, newLockLimit = 1, rotationSpeed =1, meleeRange = 1;
+	public float speed = 150, newLockLimit = 1, rotationSpeed =1, meleeRange = 1, minEnemyDistance, minEnemyAltitudeDistance;
 	public float boostMultiplier;
 	public float lockLimit = 2;
 	public bool isBoosted, moving, canBomb, canAttack = true, shielding = false, makingBomb = false;
 
 	void Start (){
+		rb = GetComponent<Rigidbody>();
 		pseudoTime = Time.time;
 		particles = GetComponentInChildren<ParticleSystem>();
 		particles.startLifetime = 1f;
@@ -50,6 +52,19 @@ public class PlayerController: MonoBehaviour {
 	}
 	void Update(){
 		ControlPlayer();
+
+	}
+	void FixedUpdate () {
+		RightStick();
+	
+
+
+		charCon.Move(movement * speed * Time.deltaTime);
+
+		
+		camFollow.AdjustDamping();
+		pseudo.transform.position = transform.position;
+
 		if(moving){
 			pseudoTime = Time.time;
 			if(!isLocked){
@@ -58,20 +73,13 @@ public class PlayerController: MonoBehaviour {
 					AdjustPseudo();
 				}
 			}else{
-					pseudo.transform.rotation = transform.rotation;
+					transform.LookAt(target.transform);
 			}
 		}else{
 			if(isLocked){
 				//AdjustPseudo();
 			}
 		}
-
-	}
-	void FixedUpdate () {
-		charCon.Move(movement * speed * Time.deltaTime);
-		camFollow.AdjustDamping();
-		pseudo.transform.position = transform.position;
-
 
 	}
 
@@ -81,7 +89,6 @@ public class PlayerController: MonoBehaviour {
 			GetMovement();
 		}
 		Charge();
-		RightStick();
 		LockOn();
 		Attack();
 
@@ -114,7 +121,17 @@ public class PlayerController: MonoBehaviour {
 		movement = pseudo.transform.TransformDirection(movement);
 ////		transform.rotation = Quaternion.Euler (0, newY, 0);
 		movement = new Vector3(movement.x, moveY, movement.z);
-		//TODO: fix altitudep
+		//TODO: fix altitude GLITCH
+
+
+//		Vector3 newMove = transform.position + movement * speed * Time.deltaTime;
+//		if(isLocked){
+//			if(Mathf.Abs(newMove.y - target.transform.position.y) <= minEnemyAltitudeDistance && (Vector2.Distance(new Vector2(newMove.x, newMove.z), new Vector2(target.transform.position.x, target.transform.position.z)) <= minEnemyDistance)){
+//		
+//					print("getting here");
+//					movement = new Vector3(0, 0, 0);
+//			}
+//		}
 		if((moveX == 0 && moveY == 0 && moveZ == 0) && !isBoosted){
 			moving = false;
 			particles.startLifetime = 1;
@@ -195,7 +212,8 @@ public class PlayerController: MonoBehaviour {
 		}
 		if (isLocked == true) {
 			if(target){
-				transform.LookAt (target.transform);
+				pseudo.transform.LookAt (target.transform);
+
 			}
 			else{
 				isLocked = false;
