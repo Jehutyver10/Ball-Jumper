@@ -2,12 +2,12 @@
 using System.Collections;
 
 public class EnemyWeapon : MonoBehaviour {
-	public bool active = false, knockback = false;
+	public bool active = false, knockback = false, hit = false;
 	public float damage = 0, comboDamage = 0, burstDamage = 0, force = 0;
-	public int shieldCounter;
+	public int noDamageSwingCount;
 	// Use this for initialization
 	void Start () {
-		shieldCounter = 0;
+		noDamageSwingCount = 0;
 		//find all the weapons that the enemy has
 //		for(int i = 0; i < transform.root.GetComponentsInChildren<EnemyWeapon>().Length; i++){
 //			transform.root.GetComponentsInChildren<EnemyWeapon>()[i].name = transform.root.GetComponentsInChildren<EnemyWeapon>()[i].name + " " + i.ToString(); 
@@ -20,11 +20,6 @@ public class EnemyWeapon : MonoBehaviour {
 	}
 
 	void OnTriggerEnter(Collider col){
-//		if(isColliding){
-//			return;
-//		}
-//		isColliding = true;
-
 		if(active){
 //			if(col.transform.root.GetComponentInChildren<Weapon>()){
 //				print("Getting here");
@@ -35,12 +30,13 @@ public class EnemyWeapon : MonoBehaviour {
 //				}
 //			}
 			if(col.GetComponentInParent<PlayerController>() && active){//avoid doing damage when weapon clashing
+				hit = true;
 				if(col.GetComponentInParent<PlayerController>().shielding){
-					shieldCounter += 1;
-					print(shieldCounter);
+					noDamageSwingCount += 1;
+					print(noDamageSwingCount);
 				}else{
 					col.GetComponentInParent<Health>().TakeDamage(damage);
-					shieldCounter = 0;
+					noDamageSwingCount = 0;
 				}
 				active = false;
 			}

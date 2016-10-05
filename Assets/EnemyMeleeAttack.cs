@@ -10,6 +10,7 @@ public class EnemyMeleeAttack : StateMachineBehaviour {
 		weapon = animator.GetComponentInChildren<EnemyWeapon>(); //finds the player's weapon
 		weaponTrail = weapon.transform.FindChild("Enemy Weapon Trail").gameObject;
 		weapon.active = true;
+		weapon.hit = false;
 		weaponTrail.SetActive(true);
 		if(isCombo){
 			weapon.damage = weapon.comboDamage;
@@ -29,11 +30,14 @@ public class EnemyMeleeAttack : StateMachineBehaviour {
 	override public void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
 		weaponTrail.SetActive(false);
 		weapon.active = false;
-		if(weapon.shieldCounter >=4 && lastHit){
+		if(isCombo && !weapon.hit){//on miss
+			weapon.noDamageSwingCount += 1;
+		}
+		if(weapon.noDamageSwingCount >=4 && lastHit){
 			animator.SetTrigger("Charge Slash");
 		} 
 		if(resetCounter){
-			weapon.shieldCounter = 0;
+			weapon.noDamageSwingCount = 0;
 		}
 	}
 
