@@ -32,8 +32,12 @@ public class EnemyWeapon : MonoBehaviour {
 			if(col.GetComponentInParent<PlayerController>() && active){//avoid doing damage when weapon clashing
 				hit = true;
 				if(col.GetComponentInParent<PlayerController>().shielding){
-					noDamageSwingCount += 1;
-					print(noDamageSwingCount);
+					if(damage == burstDamage){
+						col.GetComponentInParent<Health>().TakeDamage(damage);
+						noDamageSwingCount = 0;
+					} else{
+						noDamageSwingCount += 1;
+					}
 				}else{
 					col.GetComponentInParent<Health>().TakeDamage(damage);
 					noDamageSwingCount = 0;

@@ -29,7 +29,9 @@ public class Bomb : Projectile {
 		if(Input.GetAxis("Boost") == 0){
 			anim.SetTrigger("Fire Bomb");
 		}
-	
+		if(player.target){
+			transform.position = Vector3.MoveTowards(transform.position, player.target.transform.position, speed * Time.deltaTime);
+		}	
 		if(canFire){
 			Shoot();
 		}

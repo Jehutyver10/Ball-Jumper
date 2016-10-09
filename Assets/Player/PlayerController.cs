@@ -26,7 +26,7 @@ public class PlayerController: MonoBehaviour {
 	public float speed = 150, newLockLimit = 1, rotationSpeed =1, meleeRange = 1, minEnemyDistance, minEnemyAltitudeDistance;
 	public float boostMultiplier;
 	public float lockLimit = 2;
-	public bool isBoosted, moving, canBomb, canAttack = true, shielding = false, makingBomb = false;
+	public bool isBoosted, moving, canBomb, canAttack = true, shielding = false, makingBomb = false, stalled = false;
 
 	void Start (){
 		rb = GetComponent<Rigidbody>();
@@ -51,20 +51,17 @@ public class PlayerController: MonoBehaviour {
 //		newY = 0;
 	}
 	void Update(){
-		ControlPlayer();
-
+		if(!stalled){
+			ControlPlayer();
+		}
+		HandleAnimationLayer();
 	}
 	void FixedUpdate () {
-		RightStick();
-	
-
-
-		charCon.Move(movement * speed * Time.deltaTime);
-
-		
+		if(!stalled){
+			charCon.Move(movement * speed * Time.deltaTime);
+		}
 		camFollow.AdjustDamping();
 		pseudo.transform.position = transform.position;
-
 		if(moving){
 			pseudoTime = Time.time;
 			if(!isLocked){
@@ -80,6 +77,7 @@ public class PlayerController: MonoBehaviour {
 				//AdjustPseudo();
 			}
 		}
+		RightStick();
 
 	}
 
@@ -147,19 +145,24 @@ public class PlayerController: MonoBehaviour {
 			float rotateHorizontal = CrossPlatformInputManager.GetAxis("Right Horizontal");
 			pseudo.transform.RotateAround (transform.localPosition, Vector3.up, rotateHorizontal * rotationSpeed);			
 		}else{
-			if(CrossPlatformInputManager.GetAxis("Right Horizontal") != 0){
-				float checkNewLockTime = Time.time;
-				if(checkNewLockTime - newLockTime > newLockLimit){
-					if(CrossPlatformInputManager.GetAxis("Right Horizontal") > 0){
-						targeter -= 1;
-					}else if (CrossPlatformInputManager.GetAxis("Right Horizontal") < 0){
-						targeter += 1;
+			if(target){
+				if(CrossPlatformInputManager.GetAxis("Right Horizontal") != 0){
+					float checkNewLockTime = Time.time;
+					if(checkNewLockTime - newLockTime > newLockLimit){
+						if(CrossPlatformInputManager.GetAxis("Right Horizontal") > 0){
+							targeter -= 1;
+						}else if (CrossPlatformInputManager.GetAxis("Right Horizontal") < 0){
+							targeter += 1;
+						}
+
+						HandleLock();
 					}
 
-					HandleLock();
+				}
+			}else{
+				isLocked = false;
 			}
-
-			}
+			
 		}
 //		newY = transform.rotation.eulerAngles.y;
 
@@ -189,6 +192,15 @@ public class PlayerController: MonoBehaviour {
 		}
 	}
 
+	void HandleAnimationLayer(){
+		if(isLocked){
+			anim.SetLayerWeight(anim.GetLayerIndex("Not Locked On"), 0);
+			anim.SetLayerWeight(anim.GetLayerIndex("Locked On"), 1);
+		}else{
+			anim.SetLayerWeight(anim.GetLayerIndex("Not Locked On"), 1);
+			anim.SetLayerWeight(anim.GetLayerIndex("Locked On"), 0);
+		}
+	}
 	void LockOn(){
 		if(CanLockOn()){
 			if(Mathf.Round(CrossPlatformInputManager.GetAxis("LockOn")) > 0){
@@ -201,8 +213,6 @@ public class PlayerController: MonoBehaviour {
 					lockOffTime = Time.time;
 					target = null;
 					isLocked = false;
-					anim.SetLayerWeight(anim.GetLayerIndex("Not Locked On"), 1);
-					anim.SetLayerWeight(anim.GetLayerIndex("Locked On"), 0);
 
 					camFollow.SlowDamping();
 				}
@@ -217,8 +227,6 @@ public class PlayerController: MonoBehaviour {
 			}
 			else{
 				isLocked = false;
-				anim.SetLayerWeight(anim.GetLayerIndex("Not Locked On"), 1);
-				anim.SetLayerWeight(anim.GetLayerIndex("Locked On"), 0);
 
 				transform.LookAt(transform.forward);
 				HandleLock();
@@ -242,8 +250,6 @@ public class PlayerController: MonoBehaviour {
 				camFollow.SlowDamping();
 				target = targets[0];
 				isLocked = true;
-				anim.SetLayerWeight(anim.GetLayerIndex("Locked On"), 1);
-				anim.SetLayerWeight(anim.GetLayerIndex("Not Locked On"), 0);
 
 			}
 		} else {// to switch targets;

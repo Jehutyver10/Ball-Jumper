@@ -3,7 +3,7 @@ using System.Collections;
 [RequireComponent (typeof (Health))]
 public class Enemy : LockableTarget {
 	public bool canBeHomedInOn, alive = false;
-	public float shotsPerSecond, meleeLimit, detectionRange;
+	public float shotsPerSecond, meleeLimit, detectionRange, speed;
 	public GameObject laser;
 	public EnemyWeapon weapon;
 	public PseudoEnemy pseudo;
@@ -13,7 +13,7 @@ public class Enemy : LockableTarget {
 
 
 
-	private GameObject target;
+	public GameObject target;
 	// Use this for initialization
 
 	void Awake(){
