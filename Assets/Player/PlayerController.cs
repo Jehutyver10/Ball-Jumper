@@ -26,7 +26,7 @@ public class PlayerController: MonoBehaviour {
 	public float speed = 150, newLockLimit = 1, rotationSpeed =1, meleeRange = 1, minEnemyDistance, minEnemyAltitudeDistance;
 	public float boostMultiplier;
 	public float lockLimit = 2;
-	public bool isBoosted, moving, canBomb, canAttack = true, shielding = false, makingBomb = false, stalled = false;
+	public bool isBoosted, moving, canBomb, canAttack = true, shielding = false, makingBomb = false, stunned = false;
 
 	void Start (){
 		rb = GetComponent<Rigidbody>();
@@ -51,13 +51,13 @@ public class PlayerController: MonoBehaviour {
 //		newY = 0;
 	}
 	void Update(){
-		if(!stalled){
+		if(!stunned){
 			ControlPlayer();
 		}
 		HandleAnimationLayer();
 	}
 	void FixedUpdate () {
-		if(!stalled){
+		if(!stunned){
 			charCon.Move(movement * speed * Time.deltaTime);
 		}
 		camFollow.AdjustDamping();
@@ -305,7 +305,7 @@ public class PlayerController: MonoBehaviour {
 
 
 
-	void AllowShoot(){
+	public void AllowShoot(){
 		canAttack = true;
 
 	}
@@ -383,8 +383,10 @@ public class PlayerController: MonoBehaviour {
 
 	}
 	void Shoot(){
+
 		if(!isBoosted && !charging){//stationary shot
 			anim.SetTrigger("Shoot Bullet");
+
 		} else if(charging && canBomb){
 			anim.SetTrigger("Shoot Bomb");
 		} else if(isBoosted){
@@ -394,7 +396,7 @@ public class PlayerController: MonoBehaviour {
 	}
 	public void LockBlast(){
 		Enemy[] Enemies = GameObject.FindObjectsOfType<Enemy>();
-		if(Input.GetButton("Attack")){
+		if(CrossPlatformInputManager.GetButton("Attack")){
 			foreach(Enemy enemy in Enemies){
 				if(enemy.canBeHomedInOn){
 
@@ -402,13 +404,16 @@ public class PlayerController: MonoBehaviour {
 				}
 			}
 		}
-		else{
+		else if(CrossPlatformInputManager.GetButtonUp("Attack")){
 			anim.SetBool("Locking Blast", false);
 			ShootBlast(Enemies);
+			print("called");
+
 		}
 	}
 
 	void ShootBlast(Enemy[] EnemyArray){
+
 		List<Blast> blasts = new List<Blast>();
 		//sort enemies into lockable enemies;
 		List<Enemy> lockableEnemies = new List<Enemy>();
@@ -449,6 +454,7 @@ public class PlayerController: MonoBehaviour {
 	}
 
 	void ShootBullet(){
+
 		hand = GetComponentInChildren<Shooter>().transform;
 		GameObject shot = Instantiate(bullet, hand.position + transform.forward, Quaternion.identity) as GameObject;
 		shot.GetComponent<Projectile>().SetShooter(this.gameObject);

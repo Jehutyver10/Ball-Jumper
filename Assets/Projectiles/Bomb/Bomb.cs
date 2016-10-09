@@ -44,6 +44,8 @@ public class Bomb : Projectile {
 			canFire = true;
 			launched = true;
 			transform.parent = null;
+			player.canBomb = true;
+	
 	}
 
 	void OnCollisionEnter(Collision col){
@@ -58,7 +60,6 @@ public class Bomb : Projectile {
 		}else if(col.GetComponent<Health>()){
 			col.GetComponent<Health>().TakeDamage(damage);
 		}
-		player.canBomb = true;
 		if(launched){
 			Destroy(gameObject);
 		}

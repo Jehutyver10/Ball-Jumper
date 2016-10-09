@@ -4,6 +4,7 @@ using System.Collections;
 public class EnemyMeleeAttack : StateMachineBehaviour {
 		EnemyWeapon weapon;
 		GameObject weaponTrail;
+		float MeleeLimit = 2;
 		public bool isCombo, isChargeAttack, resetCounter, lastHit, firstHit;
      //OnStateEnter is called before OnStateEnter is called on any state inside this state machine
 	override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
@@ -24,10 +25,13 @@ public class EnemyMeleeAttack : StateMachineBehaviour {
 	// OnStateUpdate is called before OnStateUpdate is called on any state inside this state machine
 	override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
 		if(firstHit){
-			animator.transform.position = Vector3.MoveTowards(animator.transform.position, animator.GetComponent<Enemy>().target.transform.position, animator.GetComponent<Enemy>().speed * Time.deltaTime);
+			if(Vector3.Distance(animator.transform.position, animator.GetComponent<Enemy>().target.transform.position) > MeleeLimit){
+	
+				animator.transform.position = Vector3.MoveTowards(animator.transform.position, animator.GetComponent<Enemy>().target.transform.position, animator.GetComponent<Enemy>().speed * Time.deltaTime);
 
 			///animator.GetComponent<CharacterController>().Move(animator.transform.forward * Time.deltaTime * animator.GetComponent<Enemy>().speed);
 			}
+		}
 	}
 
 	 //OnStateExit is called before OnStateExit is called on any state inside this state machine
