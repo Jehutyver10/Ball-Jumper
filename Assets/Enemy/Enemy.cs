@@ -3,16 +3,17 @@ using System.Collections;
 [RequireComponent (typeof (Health))]
 public class Enemy : LockableTarget {
 	public bool canBeHomedInOn, alive = false;
-	public float shotsPerSecond, meleeLimit, detectionRange;
+	public float shotsPerSecond, meleeLimit, detectionRange, speed;
 	public GameObject laser;
 	public EnemyWeapon weapon;
+	public PseudoEnemy pseudo;
 
 	Animator anim;
 	Health health;
 
 
 
-	private GameObject target;
+	public GameObject target;
 	// Use this for initialization
 
 	void Awake(){
@@ -22,12 +23,13 @@ public class Enemy : LockableTarget {
 		anim = GetComponent<Animator>();
 		health = GetComponent<Health>();
 		weapon = GetComponentInChildren<EnemyWeapon>();
+		pseudo = GetComponentInChildren<PseudoEnemy>();
 	}
 
 	// Update is called once per frame
 	void Update(){
 
-		transform.LookAt(target.transform);
+		transform.LookAt(target.GetComponent<PlayerController>().pseudo.transform);
 		float probability = Time.deltaTime * shotsPerSecond;
 		if(Mathf.Abs(Vector3.Distance(target.transform.position, transform.position)) < detectionRange){//check if player is within enemy's detection range
 			alive = true;

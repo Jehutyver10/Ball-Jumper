@@ -8,11 +8,13 @@ public class Bomb : Projectile {
 	bool canFire = false, launched = false;
 	Animator anim;
 	Projectile projectile;
+	public float maxDamage = 1000;
 	// Use this for initialization
 
 	void Awake(){
 		transform.parent = GameObject.Find("Projectiles").transform;
 		launched = false;
+		damage = 300;
 	}
 	void Start () {
 		projectile = GetComponent<Projectile>();
@@ -29,7 +31,9 @@ public class Bomb : Projectile {
 		if(Input.GetAxis("Boost") == 0){
 			anim.SetTrigger("Fire Bomb");
 		}
-	
+		if(player.target){
+			transform.position = Vector3.MoveTowards(transform.position, player.target.transform.position, speed * Time.deltaTime);
+		}	
 		if(canFire){
 			Shoot();
 		}
@@ -41,6 +45,9 @@ public class Bomb : Projectile {
 			anim.applyRootMotion = true;
 			canFire = true;
 			launched = true;
+			transform.parent = null;
+			player.canBomb = true;
+	
 	}
 
 	void OnCollisionEnter(Collision col){
@@ -50,15 +57,18 @@ public class Bomb : Projectile {
 		}
 	}
 	void OnTriggerEnter(Collider col){
-		if(col.GetComponentInParent<Health>()){
-			col.GetComponentInParent<Health>().TakeDamage(damage);
-		}else if(col.GetComponent<Health>()){
-			col.GetComponent<Health>().TakeDamage(damage);
-		}
-		player.canBomb = true;
+		if(isColliding){
+				return;
+			}
 		if(launched){
-			Destroy(gameObject);
+
+			isColliding = true;
+			if(col.GetComponentInParent<Health>()){
+				col.GetComponentInParent<Health>().TakeDamage(damage);
+			}
+			Destroy(gameObject);	
 		}
+
 	}
 
 	public void SetDamage(float damage){

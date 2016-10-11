@@ -19,15 +19,17 @@ public class PlayerController: MonoBehaviour {
 	private Vector3 movement;
 	private ParticleSystem particles;
 
+	public Rigidbody rb;
 	public PseudoPlayer pseudo;
 	public Animator anim;
 	public GameObject bullet, bomb, blast, target;
-	public float speed = 150, newLockLimit = 1, rotationSpeed =1, meleeRange = 1;
+	public float speed = 150, newLockLimit = 1, rotationSpeed =1, meleeRange = 1, minEnemyDistance, minEnemyAltitudeDistance;
 	public float boostMultiplier;
 	public float lockLimit = 2;
-	public bool isBoosted, moving, canBomb, canAttack = true, shielding = false, makingBomb = false;
+	public bool isBoosted, moving, canBomb, canAttack = true, shielding = false, makingBomb = false, stunned = false;
 
 	void Start (){
+		rb = GetComponent<Rigidbody>();
 		pseudoTime = Time.time;
 		particles = GetComponentInChildren<ParticleSystem>();
 		particles.startLifetime = 1f;
@@ -49,7 +51,17 @@ public class PlayerController: MonoBehaviour {
 //		newY = 0;
 	}
 	void Update(){
-		ControlPlayer();
+		if(!stunned){
+			ControlPlayer();
+		}
+		HandleAnimationLayer();
+	}
+	void FixedUpdate () {
+		if(!stunned){
+			charCon.Move(movement * speed * Time.deltaTime);
+		}
+		camFollow.AdjustDamping();
+		pseudo.transform.position = transform.position;
 		if(moving){
 			pseudoTime = Time.time;
 			if(!isLocked){
@@ -58,20 +70,14 @@ public class PlayerController: MonoBehaviour {
 					AdjustPseudo();
 				}
 			}else{
-					pseudo.transform.rotation = transform.rotation;
+					transform.LookAt(target.transform);
 			}
 		}else{
 			if(isLocked){
 				//AdjustPseudo();
 			}
 		}
-
-	}
-	void FixedUpdate () {
-		charCon.Move(movement * speed * Time.deltaTime);
-		camFollow.AdjustDamping();
-		pseudo.transform.position = transform.position;
-
+		RightStick();
 
 	}
 
@@ -81,7 +87,6 @@ public class PlayerController: MonoBehaviour {
 			GetMovement();
 		}
 		Charge();
-		RightStick();
 		LockOn();
 		Attack();
 
@@ -114,7 +119,17 @@ public class PlayerController: MonoBehaviour {
 		movement = pseudo.transform.TransformDirection(movement);
 ////		transform.rotation = Quaternion.Euler (0, newY, 0);
 		movement = new Vector3(movement.x, moveY, movement.z);
-		//TODO: fix altitudep
+		//TODO: fix altitude GLITCH
+
+
+//		Vector3 newMove = transform.position + movement * speed * Time.deltaTime;
+//		if(isLocked){
+//			if(Mathf.Abs(newMove.y - target.transform.position.y) <= minEnemyAltitudeDistance && (Vector2.Distance(new Vector2(newMove.x, newMove.z), new Vector2(target.transform.position.x, target.transform.position.z)) <= minEnemyDistance)){
+//		
+//					print("getting here");
+//					movement = new Vector3(0, 0, 0);
+//			}
+//		}
 		if((moveX == 0 && moveY == 0 && moveZ == 0) && !isBoosted){
 			moving = false;
 			particles.startLifetime = 1;
@@ -130,19 +145,24 @@ public class PlayerController: MonoBehaviour {
 			float rotateHorizontal = CrossPlatformInputManager.GetAxis("Right Horizontal");
 			pseudo.transform.RotateAround (transform.localPosition, Vector3.up, rotateHorizontal * rotationSpeed);			
 		}else{
-			if(CrossPlatformInputManager.GetAxis("Right Horizontal") != 0){
-				float checkNewLockTime = Time.time;
-				if(checkNewLockTime - newLockTime > newLockLimit){
-					if(CrossPlatformInputManager.GetAxis("Right Horizontal") > 0){
-						targeter -= 1;
-					}else if (CrossPlatformInputManager.GetAxis("Right Horizontal") < 0){
-						targeter += 1;
+			if(target){
+				if(CrossPlatformInputManager.GetAxis("Right Horizontal") != 0){
+					float checkNewLockTime = Time.time;
+					if(checkNewLockTime - newLockTime > newLockLimit){
+						if(CrossPlatformInputManager.GetAxis("Right Horizontal") > 0){
+							targeter -= 1;
+						}else if (CrossPlatformInputManager.GetAxis("Right Horizontal") < 0){
+							targeter += 1;
+						}
+
+						HandleLock();
 					}
 
-					HandleLock();
+				}
+			}else{
+				isLocked = false;
 			}
-
-			}
+			
 		}
 //		newY = transform.rotation.eulerAngles.y;
 
@@ -172,6 +192,15 @@ public class PlayerController: MonoBehaviour {
 		}
 	}
 
+	void HandleAnimationLayer(){
+		if(isLocked){
+			anim.SetLayerWeight(anim.GetLayerIndex("Not Locked On"), 0);
+			anim.SetLayerWeight(anim.GetLayerIndex("Locked On"), 1);
+		}else{
+			anim.SetLayerWeight(anim.GetLayerIndex("Not Locked On"), 1);
+			anim.SetLayerWeight(anim.GetLayerIndex("Locked On"), 0);
+		}
+	}
 	void LockOn(){
 		if(CanLockOn()){
 			if(Mathf.Round(CrossPlatformInputManager.GetAxis("LockOn")) > 0){
@@ -184,8 +213,6 @@ public class PlayerController: MonoBehaviour {
 					lockOffTime = Time.time;
 					target = null;
 					isLocked = false;
-					anim.SetLayerWeight(anim.GetLayerIndex("Not Locked On"), 1);
-					anim.SetLayerWeight(anim.GetLayerIndex("Locked On"), 0);
 
 					camFollow.SlowDamping();
 				}
@@ -195,12 +222,11 @@ public class PlayerController: MonoBehaviour {
 		}
 		if (isLocked == true) {
 			if(target){
-				transform.LookAt (target.transform);
+				pseudo.transform.LookAt (target.transform);
+
 			}
 			else{
 				isLocked = false;
-				anim.SetLayerWeight(anim.GetLayerIndex("Not Locked On"), 1);
-				anim.SetLayerWeight(anim.GetLayerIndex("Locked On"), 0);
 
 				transform.LookAt(transform.forward);
 				HandleLock();
@@ -224,8 +250,6 @@ public class PlayerController: MonoBehaviour {
 				camFollow.SlowDamping();
 				target = targets[0];
 				isLocked = true;
-				anim.SetLayerWeight(anim.GetLayerIndex("Locked On"), 1);
-				anim.SetLayerWeight(anim.GetLayerIndex("Not Locked On"), 0);
 
 			}
 		} else {// to switch targets;
@@ -281,7 +305,7 @@ public class PlayerController: MonoBehaviour {
 
 
 
-	void AllowShoot(){
+	public void AllowShoot(){
 		canAttack = true;
 
 	}
@@ -359,8 +383,10 @@ public class PlayerController: MonoBehaviour {
 
 	}
 	void Shoot(){
+
 		if(!isBoosted && !charging){//stationary shot
 			anim.SetTrigger("Shoot Bullet");
+
 		} else if(charging && canBomb){
 			anim.SetTrigger("Shoot Bomb");
 		} else if(isBoosted){
@@ -370,7 +396,7 @@ public class PlayerController: MonoBehaviour {
 	}
 	public void LockBlast(){
 		Enemy[] Enemies = GameObject.FindObjectsOfType<Enemy>();
-		if(Input.GetButton("Attack")){
+		if(CrossPlatformInputManager.GetButton("Attack")){
 			foreach(Enemy enemy in Enemies){
 				if(enemy.canBeHomedInOn){
 
@@ -378,13 +404,16 @@ public class PlayerController: MonoBehaviour {
 				}
 			}
 		}
-		else{
+		else if(CrossPlatformInputManager.GetButtonUp("Attack")){
 			anim.SetBool("Locking Blast", false);
 			ShootBlast(Enemies);
+			print("called");
+
 		}
 	}
 
 	void ShootBlast(Enemy[] EnemyArray){
+
 		List<Blast> blasts = new List<Blast>();
 		//sort enemies into lockable enemies;
 		List<Enemy> lockableEnemies = new List<Enemy>();
@@ -425,9 +454,9 @@ public class PlayerController: MonoBehaviour {
 	}
 
 	void ShootBullet(){
+
 		hand = GetComponentInChildren<Shooter>().transform;
 		GameObject shot = Instantiate(bullet, hand.position + transform.forward, Quaternion.identity) as GameObject;
-		shot.transform.parent = GameObject.Find("Projectiles").transform;
 		shot.GetComponent<Projectile>().SetShooter(this.gameObject);
 		Quaternion q = Quaternion.FromToRotation(Vector3.up, transform.forward);
 		shot.transform.rotation = q * shot.transform.rotation;
