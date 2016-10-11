@@ -7,10 +7,10 @@ using UnityStandardAssets.CrossPlatformInput;
 [RequireComponent (typeof (Health))]
 public class PlayerController: MonoBehaviour {
 
-	private bool isLocked, charging;
+	private bool isLocked, charging, grabbing;
 	private Camera cam;
 	private CameraFollow camFollow;
-	private float boostSpeed, normalSpeed, checkLock, lockOffTime, newLockTime, pseudoTime; 
+	private float boostSpeed, normalSpeed, checkLock, lockOffTime, newLockTime; 
 	private CharacterController charCon;
 	private int targeter;
 	private Transform hand;
@@ -305,9 +305,8 @@ public class PlayerController: MonoBehaviour {
 
 
 
-	public void AllowShoot(){
+	public void AllowAttack(){
 		canAttack = true;
-
 	}
 
 	void Attack(){
@@ -354,13 +353,35 @@ public class PlayerController: MonoBehaviour {
 		anim.SetBool("Shielding", true);
 		normalSpeed = normalSpeed/2;
 		isBoosted = false;
-	}
+	}	
 
 	void UseSubweapon(){
 		Debug.Log("Subweapon used");
 		canAttack = true;
+	}
+
+	void GrabOrThrow(){
+		if(!grabbing){
+			anim.SetTrigger("Grab");
+		}else{
+			anim.SetTrigger("Throw");
+		}
+	}
+
+	public void Grab(GameObject grabbedObject){
+		grabbedObject.transform.root.SetParent(GetComponentInChildren<Grabber>().transform);
+		grabbing = true;
+		grabbedObject.GetComponent<Grabbable>().grabbed = true;
+	}
+
+	public void Throw(){
+		GameObject grabbedObject = GetComponentInChildren<Grabbable>().gameObject;
+		grabbedObject.transform.parent = null;
+		grabbing = false;
+		grabbedObject.GetComponent<Grabbable>().grabbed = false;
 
 	}
+
 	void MeleeAttack(){
 		if(!isBoosted && !charging){//stationary shot
 			anim.SetTrigger("Begin Melee Combo");
@@ -455,7 +476,7 @@ public class PlayerController: MonoBehaviour {
 
 	void ShootBullet(){
 
-		hand = GetComponentInChildren<Shooter>().transform;
+		hand = GetComponentInChildren<Grabber>().transform;
 		GameObject shot = Instantiate(bullet, hand.position + transform.forward, Quaternion.identity) as GameObject;
 		shot.GetComponent<Projectile>().SetShooter(this.gameObject);
 		Quaternion q = Quaternion.FromToRotation(Vector3.up, transform.forward);
