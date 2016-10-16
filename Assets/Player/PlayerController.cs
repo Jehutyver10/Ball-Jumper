@@ -30,7 +30,7 @@ public class PlayerController: MonoBehaviour {
 
 	void Start (){
 		rb = GetComponent<Rigidbody>();
-		pseudoTime = Time.time;
+		//pseudoTime = Time.time;
 		particles = GetComponentInChildren<ParticleSystem>();
 		particles.startLifetime = 1f;
 		//movement = Vector3.zero;
@@ -63,7 +63,7 @@ public class PlayerController: MonoBehaviour {
 		camFollow.AdjustDamping();
 		pseudo.transform.position = transform.position;
 		if(moving){
-			pseudoTime = Time.time;
+			//pseudoTime = Time.time;
 			if(!isLocked){
 				transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(movement), Time.deltaTime * 10);
 				if(Input.GetAxis("Right Horizontal") != 0){
@@ -488,5 +488,9 @@ public class PlayerController: MonoBehaviour {
 	void AdjustPseudo(){
 		Vector3 newDir = Vector3.RotateTowards(pseudo.transform.forward, transform.forward, Time.deltaTime * 5, 5f);
 		pseudo.transform.rotation = Quaternion.LookRotation(newDir);
+	}
+	//Use for debugging animator/animation errors
+	void CheckAnimation(){
+		print("Animating");
 	}
 }
