@@ -356,7 +356,7 @@ public class PlayerController: MonoBehaviour {
 	}	
 
 	void UseSubweapon(){
-		Debug.Log("Subweapon used");
+		anim.SetTrigger("Subweapon");
 		canAttack = true;
 	}
 

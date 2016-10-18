@@ -16,8 +16,10 @@ public class Grabber : MonoBehaviour {
 	}
 
 	void OnTriggerEnter(Collider col){
+		print("entering");
 		if(col.GetComponentInParent<Grabbable>()){
 			GetComponentInParent<PlayerController>().Grab(col.gameObject);
+			this.enabled = false;
 		}
 	}
 }
