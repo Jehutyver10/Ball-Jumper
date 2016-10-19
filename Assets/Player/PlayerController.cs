@@ -23,9 +23,8 @@ public class PlayerController: MonoBehaviour {
 	public PseudoPlayer pseudo;
 	public Animator anim;
 	public GameObject bullet, bomb, blast, target;
-	public float speed = 150, newLockLimit = 1, rotationSpeed =1, meleeRange = 1, minEnemyDistance, minEnemyAltitudeDistance;
-	public float boostMultiplier;
-	public float lockLimit = 2;
+	public float speed = 150, newLockLimit = 1, rotationSpeed =1, meleeRange = 1, minEnemyDistance, minEnemyAltitudeDistance, 
+	boostMultiplier, lockLimit = 2, throwStrength;
 	public bool isBoosted, moving, canBomb, canAttack = true, shielding = false, makingBomb = false, stunned = false;
 
 	void Start (){
@@ -208,13 +207,8 @@ public class PlayerController: MonoBehaviour {
 			}
 		} else{
 			if(Mathf.Round(CrossPlatformInputManager.GetAxis("LockOn")) > 0 && isLocked){ //holding down button while locked on
-				
 				if(canLockOff()){
-					lockOffTime = Time.time;
-					target = null;
-					isLocked = false;
-
-					camFollow.SlowDamping();
+					LockOff();
 				}
 			}else{
 				lockOffTime = Time.time;
@@ -234,6 +228,12 @@ public class PlayerController: MonoBehaviour {
 		}
 	}
 
+	void LockOff(){
+		lockOffTime = Time.time;
+		target = null;
+		isLocked = false;
+		camFollow.SlowDamping();
+	}
 	private bool CanLockOn(){
 		float lockOn =  Mathf.Round(CrossPlatformInputManager.GetAxis("LockOn"));
 		if(lockOn != checkLock){
@@ -374,9 +374,11 @@ public class PlayerController: MonoBehaviour {
 		if(grabbedObject.GetComponent<Grabbable>()){
 			grabbedObject.GetComponent<Grabbable>().grabbed = false;
 		}
-		if(grabbedObject.GetComponent<CharacterController>()){
-			grabbedObject.GetComponent<CharacterController>().enabled = false;
-		}	
+//		if(grabbedObject.GetComponent<CharacterController>()){
+//			grabbedObject.GetComponent<CharacterController>().enabled = false;
+//		}
+		grabbedObject.tag = "Untagged";
+		LockOff();
 	}
 
 	public void Throw(){
@@ -386,6 +388,8 @@ public class PlayerController: MonoBehaviour {
 		if(grabbedObject.GetComponent<Grabbable>()){
 			grabbedObject.GetComponent<Grabbable>().grabbed = false;
 		}
+		grabbedObject.tag = "Lockable";
+		grabbedObject.GetComponent<Rigidbody>().AddForce(transform.forward * throwStrength, ForceMode.Impulse);
 	}
 
 	void MeleeAttack(){
