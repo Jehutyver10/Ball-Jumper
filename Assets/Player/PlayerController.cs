@@ -360,7 +360,7 @@ public class PlayerController: MonoBehaviour {
 		canAttack = true;
 	}
 
-	void GrabOrThrow(){
+	public void GrabOrThrow(){
 		if(!grabbing){
 			anim.SetTrigger("Grab");
 		}else{
@@ -371,15 +371,21 @@ public class PlayerController: MonoBehaviour {
 	public void Grab(GameObject grabbedObject){
 		grabbedObject.transform.root.SetParent(GetComponentInChildren<Grabber>().transform);
 		grabbing = true;
-		grabbedObject.GetComponent<Grabbable>().grabbed = true;
+		if(grabbedObject.GetComponent<Grabbable>()){
+			grabbedObject.GetComponent<Grabbable>().grabbed = false;
+		}
+		if(grabbedObject.GetComponent<CharacterController>()){
+			grabbedObject.GetComponent<CharacterController>().enabled = false;
+		}	
 	}
 
 	public void Throw(){
-		GameObject grabbedObject = GetComponentInChildren<Grabbable>().gameObject;
+		GameObject grabbedObject = GetComponentInChildren<Grabber>().GetComponentInChildren<Grabbable>().gameObject;
 		grabbedObject.transform.parent = null;
 		grabbing = false;
-		grabbedObject.GetComponent<Grabbable>().grabbed = false;
-
+		if(grabbedObject.GetComponent<Grabbable>()){
+			grabbedObject.GetComponent<Grabbable>().grabbed = false;
+		}
 	}
 
 	void MeleeAttack(){

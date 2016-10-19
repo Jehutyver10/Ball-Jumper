@@ -3,6 +3,7 @@ using System.Collections;
 
 public class Grabber : MonoBehaviour {
 	GameObject grabbedObject;
+	public bool canGrab;
 	//this should be attached to the hand that grabs objects
 
 	// Use this for initialization
@@ -16,10 +17,12 @@ public class Grabber : MonoBehaviour {
 	}
 
 	void OnTriggerEnter(Collider col){
-		print("entering");
-		if(col.GetComponentInParent<Grabbable>()){
-			GetComponentInParent<PlayerController>().Grab(col.gameObject);
-			this.enabled = false;
+		if(canGrab){
+			print("entering");
+			if(col.GetComponentInParent<Grabbable>()){
+				GetComponentInParent<PlayerController>().Grab(col.gameObject);
+				this.enabled = false;
+			}
 		}
 	}
 }
