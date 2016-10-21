@@ -64,7 +64,9 @@ public class PlayerController: MonoBehaviour {
 		if(moving){
 			//pseudoTime = Time.time;
 			if(!isLocked){
-				transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(movement), Time.deltaTime * 10);
+				transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(new Vector3(
+				movement.x, 0, movement.z)),
+				Time.deltaTime * 10);
 				if(Input.GetAxis("Right Horizontal") != 0){
 					AdjustPseudo();
 				}
@@ -372,7 +374,7 @@ public class PlayerController: MonoBehaviour {
 		grabbedObject.transform.root.SetParent(GetComponentInChildren<Grabber>().transform);
 		grabbing = true;
 		if(grabbedObject.GetComponent<Grabbable>()){
-			grabbedObject.GetComponent<Grabbable>().grabbed = false;
+			grabbedObject.GetComponent<Grabbable>().grabbed = true;
 		}
 //		if(grabbedObject.GetComponent<CharacterController>()){
 //			grabbedObject.GetComponent<CharacterController>().enabled = false;

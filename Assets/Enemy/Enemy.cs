@@ -51,6 +51,7 @@ public class Enemy : LockableTarget {
 		//TODO remove this in final version; it's only for testing
 		if(Input.GetButtonDown("Activate Enemies")){
 			activated = !activated;
+			anim.SetBool("Activated", !anim.GetBool("Activated"));
 		}
 	}
 
@@ -63,6 +64,12 @@ public class Enemy : LockableTarget {
 			anim.SetTrigger("Clash");
 			print("Clashing");
 
+		}
+	}
+
+	void OnCollisionEnter(Collision col){
+		if(col.gameObject.GetComponent<Environment>()){
+			health.TakeDamage(col.impulse.magnitude/Time.deltaTime);
 		}
 	}
 	void Shoot(){
