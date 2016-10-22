@@ -24,7 +24,7 @@ public class PlayerController: MonoBehaviour {
 	public Animator anim;
 	public GameObject bullet, bomb, blast, target;
 	public float speed = 150, newLockLimit = 1, rotationSpeed =1, meleeRange = 1, minEnemyDistance, minEnemyAltitudeDistance, 
-	boostMultiplier, lockLimit = 2, throwStrength;
+	boostMultiplier, lockLimit = 2, throwStrength, pseudoDiscrepancySpeed;
 	public bool isBoosted, moving, canBomb, canAttack = true, shielding = false, makingBomb = false, stunned = false;
 
 	void Start (){
@@ -60,7 +60,11 @@ public class PlayerController: MonoBehaviour {
 			charCon.Move(movement * speed * Time.deltaTime);
 		}
 		camFollow.AdjustDamping();
-		pseudo.transform.position = transform.position;
+
+		//give the camera some discrepancy
+		pseudo.transform.position =  Vector3.Lerp(pseudo.transform.position, transform.position, Time.deltaTime * pseudoDiscrepancySpeed);
+		//TODO maybe revert back to just updating the position?
+
 		if(moving){
 			//pseudoTime = Time.time;
 			if(!isLocked){
@@ -71,7 +75,7 @@ public class PlayerController: MonoBehaviour {
 					AdjustPseudo();
 				}
 			}else{
-					transform.LookAt(target.transform);
+				transform.LookAt(new Vector3(target.transform.position.x, transform.position.y, target.transform.position.z));
 			}
 		}else{
 			if(isLocked){
