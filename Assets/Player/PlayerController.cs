@@ -27,6 +27,9 @@ public class PlayerController: MonoBehaviour {
 	boostMultiplier, lockLimit = 2, throwStrength, pseudoDiscrepancySpeed;
 	public bool isBoosted, moving, canBomb, canAttack = true, shielding = false, makingBomb = false, stunned = false;
 
+	void Awake(){
+		pseudo = new GameObject("Pseudoplayer").AddComponent<PseudoPlayer>();
+	}
 	void Start (){
 		rb = GetComponent<Rigidbody>();
 		//pseudoTime = Time.time;
@@ -385,6 +388,7 @@ public class PlayerController: MonoBehaviour {
 //		}
 		grabbedObject.tag = "Untagged";
 		LockOff();
+		HandleLock();
 	}
 
 	public void Throw(){
@@ -396,6 +400,7 @@ public class PlayerController: MonoBehaviour {
 		}
 		grabbedObject.tag = "Lockable";
 		grabbedObject.GetComponent<Rigidbody>().AddForce(transform.forward * throwStrength, ForceMode.Impulse);
+		HandleLock();
 	}
 
 	void MeleeAttack(){
