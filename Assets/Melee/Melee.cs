@@ -19,15 +19,14 @@ public class Melee : StateMachineBehaviour {
 		weaponTrail.SetActive(true);
 		animator.SetBool("Can Clash", true);
 		MeleeLimit = 2f;
-
-		if(isLastHit){
-			weapon.knockback = true;	
-		}
 	}	
 		
 	// OnStateUpdate is called on each Update frame between OnStateEnter and OnStateExit callbacks
 	override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
-		
+		if(isLastHit){
+			weapon.knockback = true;
+		}
+
 		if(isCombo){
 			if(!isLastHit){
 				if(CrossPlatformInputManager.GetButtonDown("Attack")){
