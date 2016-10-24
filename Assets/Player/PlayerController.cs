@@ -388,7 +388,7 @@ public class PlayerController: MonoBehaviour {
 //		}
 		grabbedObject.tag = "Untagged";
 		LockOff();
-		HandleLock();
+		//HandleLock();
 	}
 
 	public void Throw(){

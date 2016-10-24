@@ -16,6 +16,8 @@ public class Melee : StateMachineBehaviour {
 		weapon = animator.GetComponentInChildren<Weapon>(); //finds the player's weapon
 		weaponTrail = weapon.transform.FindChild("Player Weapon Trail").gameObject;
 		weapon.active = true;
+		weapon.GetComponent<MeshRenderer>().enabled = true;
+		weapon.GetComponent<BoxCollider>().enabled = true;
 		weaponTrail.SetActive(true);
 		animator.SetBool("Can Clash", true);
 		MeleeLimit = 2f;
@@ -41,10 +43,14 @@ public class Melee : StateMachineBehaviour {
 	override public void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
 		weaponTrail.SetActive(false);
 		weapon.active = false;
+		weapon.GetComponent<MeshRenderer>().enabled = false;
+		weapon.GetComponent<BoxCollider>().enabled = false;
+
 		weapon.knockback = false;
 		if(isDashAttack){
 			player.isBoosted = false;
 		}
+
 	}
 
 	// OnStateMove is called right after Animator.OnAnimatorMove(). Code that processes and affects root motion should be implemented here
