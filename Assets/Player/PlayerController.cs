@@ -25,7 +25,7 @@ public class PlayerController: MonoBehaviour {
 	public GameObject bullet, bomb, blast, target;
 	public float speed = 150, newLockLimit = 1, rotationSpeed =1, meleeRange = 1, minEnemyDistance, minEnemyAltitudeDistance, 
 	boostMultiplier, lockLimit = 2, throwStrength, pseudoDiscrepancySpeed;
-	public bool isBoosted, moving, canBomb, canAttack = true, shielding = false, makingBomb = false, stunned = false;
+	public bool isBoosted, moving, canBomb, canAttack = true, shielding = false, makingBomb = false, stunned = false, penultimateAttack;
 
 	void Awake(){
 		pseudo = new GameObject("Pseudoplayer").AddComponent<PseudoPlayer>();
@@ -116,7 +116,11 @@ public class PlayerController: MonoBehaviour {
 	void GetMovement(){
 		float moveY = 0;
 		if(CrossPlatformInputManager.GetButton("Altitude")){
-			moveY = CrossPlatformInputManager.GetAxis("Altitude");
+			if(penultimateAttack){
+				moveY = 0;
+			}else{
+				moveY = CrossPlatformInputManager.GetAxis("Altitude");
+			}
 		}
 		float moveX = CrossPlatformInputManager.GetAxis ("Horizontal");
 		float moveZ = CrossPlatformInputManager.GetAxis ("Vertical");
