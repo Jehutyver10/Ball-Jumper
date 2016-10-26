@@ -45,10 +45,10 @@ public class Weapon : MonoBehaviour {
 						col.GetComponentInParent<Rigidbody>().AddForce(transform.root.transform.forward * force, ForceMode.Impulse);
 						print("knocking back");
 					} else if(upswing && !downswing){
-						col.GetComponentInParent<Rigidbody>().AddForce(transform.root.transform.up * force, ForceMode.Impulse);
+						col.GetComponentInParent<Rigidbody>().AddForce(transform.root.transform.up * force * 10);
 						print("knocking up");
 					} else if(!upswing && downswing){
-						col.GetComponentInParent<Rigidbody>().AddForce(-transform.root.transform.up * force, ForceMode.Impulse);
+						col.GetComponentInParent<Rigidbody>().AddForce(-transform.root.transform.up * force * 10);
 						print("knocking down");
 					}
 				}
