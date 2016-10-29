@@ -24,7 +24,6 @@ public class Weapon : MonoBehaviour {
 //		isColliding = true;
 
 		if(active){
-			print("hitting");
 			if(col.transform.root.GetComponentInChildren<EnemyWeapon>()){
 				if(col.transform.root.GetComponent<Animator>().GetBool("Can Clash")){
 					SendMessageUpwards("OnWeaponsClash");

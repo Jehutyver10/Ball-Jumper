@@ -42,6 +42,7 @@ public class Melee : StateMachineBehaviour {
 			if(!isLastHit){
 				if(isPenultimateHit){
 					if(CrossPlatformInputManager.GetAxis("Altitude") > 0 && canAttack){
+						
 						animator.SetTrigger("Upswing");
 						canAttack = false;
 
@@ -53,7 +54,6 @@ public class Melee : StateMachineBehaviour {
 
 				}
 				if(CrossPlatformInputManager.GetButtonDown("Attack") && canAttack){
-					Debug.Log("here");
 					animator.SetTrigger("Continue Combo");
 					canAttack = false;
 				}
