@@ -81,6 +81,7 @@ public class Melee : StateMachineBehaviour {
 	override public void OnStateMove(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
 		if(target){
 			if(Vector3.Distance(player.transform.position, target.transform.position) > MeleeLimit){
+				player.transform.LookAt(target.transform);
 				player.GetComponent<CharacterController>().Move(player.transform.forward * Time.deltaTime * player.speed);
 			}
 		}
