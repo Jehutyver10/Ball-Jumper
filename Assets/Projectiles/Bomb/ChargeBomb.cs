@@ -13,6 +13,7 @@ public class ChargeBomb : StateMachineBehaviour {
 	override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
 		if(bomb.damage<= bomb.maxDamage){
 			bomb.damage += 10;
+			bomb.GetComponent<Rigidbody>().mass += 10;
 		}
 	}
 

@@ -22,9 +22,11 @@ public class Melee : StateMachineBehaviour {
 		if(upswing){
 			weapon.upswing = true;
 		}
-		weapon.GetComponent<MeshRenderer>().enabled = true;
-		weapon.GetComponent<BoxCollider>().enabled = true;
+		weapon.GetComponent<Renderer>().enabled = true;
+		weapon.GetComponent<Collider>().enabled = true;
 		weaponTrail.SetActive(true);
+
+
 		animator.SetBool("Can Clash", true);
 		MeleeLimit = 2f;
 	}	
@@ -34,7 +36,6 @@ public class Melee : StateMachineBehaviour {
 		if(isLastHit){
 			weapon.knockback = true;
 		}
-
 
 		if(isCombo){
 			player.penultimateAttack = true;
@@ -67,8 +68,8 @@ public class Melee : StateMachineBehaviour {
 	override public void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
 		weaponTrail.SetActive(false);
 		weapon.active = false;
-		weapon.GetComponent<MeshRenderer>().enabled = false;
-		weapon.GetComponent<BoxCollider>().enabled = false;
+		weapon.GetComponent<Renderer>().enabled = false;
+		weapon.GetComponent<Collider>().enabled = false;
 		canAttack = true;
 		player.penultimateAttack = false;
 		weapon.knockback = false;

@@ -7,7 +7,7 @@ using UnityStandardAssets.CrossPlatformInput;
 [RequireComponent (typeof (Health))]
 public class PlayerController: MonoBehaviour {
 
-	private bool isLocked, charging, grabbing;
+	private bool isLocked, charging, grabbing, inControl= true;
 	private Camera cam;
 	private CameraFollow camFollow;
 	private float boostSpeed, normalSpeed, checkLock, lockOffTime, newLockTime; 
@@ -53,9 +53,12 @@ public class PlayerController: MonoBehaviour {
 //		newY = 0;
 	}
 	void Update(){
-		if(!stunned){
-			ControlPlayer();
+		if(inControl){
+			if(!stunned){
+				ControlPlayer();
+			}
 		}
+		Pause();
 		HandleAnimationLayer();
 	}
 	void FixedUpdate () {
@@ -151,6 +154,17 @@ public class PlayerController: MonoBehaviour {
 		}
 
 
+	}
+	void Pause(){
+		if(CrossPlatformInputManager.GetButtonDown("Pause")){
+			if(Time.timeScale == 0){
+				Time.timeScale = 1;
+				inControl = true;
+			}else if(Time.timeScale > 0){
+				Time.timeScale = 0;
+				inControl = false;
+			}
+		}
 	}
 	void RightStick(){
 		if(!isLocked){
