@@ -22,7 +22,7 @@ public class Weapon : MonoBehaviour {
 //			return;
 //		}
 //		isColliding = true;
-
+		print(upswing);
 		if(active){
 			if(col.transform.root.GetComponentInChildren<EnemyWeapon>()){
 				if(col.transform.root.GetComponent<Animator>().GetBool("Can Clash")){
@@ -40,13 +40,19 @@ public class Weapon : MonoBehaviour {
 
 			if(col.GetComponentInParent<Rigidbody>()){//checks if this attack should and can knock the target back
 				if(knockback){
-					if(!upswing && !downswing || upswing && downswing){
-						col.GetComponentInParent<Rigidbody>().AddForce(transform.root.transform.forward * force, ForceMode.Impulse);
-						print("knocking back");
-					} else if(upswing && !downswing){
+					if(upswing && !downswing){
+
 						col.GetComponentInParent<Rigidbody>().AddForce(transform.root.transform.up * force * 10);
 						print("knocking up");
-					} else if(!upswing && downswing){
+						Debug.Log("upswinging");
+
+					}
+					if(!upswing && !downswing){
+						col.GetComponentInParent<Rigidbody>().AddForce(transform.root.transform.forward * force, ForceMode.Impulse);
+						print("knocking back");
+					}
+				
+					if(!upswing && downswing){
 						col.GetComponentInParent<Rigidbody>().AddForce(-transform.root.transform.up * force * 10);
 						print("knocking down");
 					}

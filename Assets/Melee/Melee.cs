@@ -24,7 +24,7 @@ public class Melee : StateMachineBehaviour {
 		}
 		weapon.GetComponent<Renderer>().enabled = true;
 		weapon.GetComponent<Collider>().enabled = true;
-		weaponTrail.SetActive(true);
+		weaponTrail.SetActive(true);		
 
 
 		animator.SetBool("Can Clash", true);
@@ -66,18 +66,14 @@ public class Melee : StateMachineBehaviour {
 
 	// OnStateExit is called when a transition ends and the state machine finishes evaluating this state
 	override public void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
-		weaponTrail.SetActive(false);
-		weapon.active = false;
-		weapon.GetComponent<Renderer>().enabled = false;
-		weapon.GetComponent<Collider>().enabled = false;
+
 		canAttack = true;
 		player.penultimateAttack = false;
 		weapon.knockback = false;
 		if(isDashAttack){
 			player.isBoosted = false;
 		}
-		weapon.downswing = false;
-		weapon.upswing = false;
+
 
 	}
 
