@@ -56,9 +56,11 @@ public class PlayerController: MonoBehaviour {
 		if(inControl){
 			if(!stunned){
 				ControlPlayer();
+
 			}
 		}
 		Pause();
+
 		HandleAnimationLayer();
 	}
 	void FixedUpdate () {
@@ -100,7 +102,7 @@ public class PlayerController: MonoBehaviour {
 		Charge();
 		LockOn();
 		Attack();
-
+		PauseSubweapon();
 	}
 
 	bool CanMove(){
@@ -166,6 +168,12 @@ public class PlayerController: MonoBehaviour {
 			}
 		}
 	}
+
+	void PauseSubweapon(){
+		if(Input.GetButton("Subweapon Menu")){
+			Debug.Log("Opening sub menu");
+		}
+	}	
 	void RightStick(){
 		if(!isLocked){
 			float rotateHorizontal = CrossPlatformInputManager.GetAxis("Right Horizontal");
