@@ -13,7 +13,7 @@ public class Health : MonoBehaviour {
 	
 	}
 
-	public void TakeDamage(float damage){
+	public void TakeDamage(float damage, bool knockback = false){
 		health -= damage;
 		if(health <= 0f){
 			Destroy(gameObject);

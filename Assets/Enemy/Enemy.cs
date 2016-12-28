@@ -2,7 +2,7 @@
 using System.Collections;
 [RequireComponent (typeof (Health))]
 public class Enemy : LockableTarget {
-	public bool canBeHomedInOn, alive = false;
+	public bool canBeHomedInOn, alive = false, activated = false;
 	public float shotsPerSecond, meleeLimit, detectionRange, speed;
 	public GameObject laser;
 	public EnemyWeapon weapon;
@@ -28,28 +28,30 @@ public class Enemy : LockableTarget {
 
 	// Update is called once per frame
 	void Update(){
-
-		transform.LookAt(target.GetComponent<PlayerController>().pseudo.transform);
-		float probability = Time.deltaTime * shotsPerSecond;
-		if(Mathf.Abs(Vector3.Distance(target.transform.position, transform.position)) < detectionRange){//check if player is within enemy's detection range
-			alive = true;
-		}else{	
-			alive = false;
-		}
-		if(alive){
-			if(Vector3.Distance(target.transform.position, transform.position) > meleeLimit){ //check if outside melee limit
-				anim.ResetTrigger("Melee Attack");
-				if(Random.value < probability){
-					Shoot();
+		if(activated){
+			transform.LookAt(target.GetComponent<PlayerController>().pseudo.transform);
+			float probability = Time.deltaTime * shotsPerSecond;
+			if(Mathf.Abs(Vector3.Distance(target.transform.position, transform.position)) < detectionRange){//check if player is within enemy's detection range
+				alive = true;
+			}else{	
+				alive = false;
+			}
+			if(alive){
+				if(Vector3.Distance(target.transform.position, transform.position) > meleeLimit){ //check if outside melee limit
+					anim.ResetTrigger("Melee Attack");
+					if(Random.value < probability){
+						Shoot();
+					}
+				}else{
+					anim.SetTrigger("Melee Attack");
 				}
-			}else{
-				anim.SetTrigger("Melee Attack");
 			}
 		}
 
 		//TODO remove this in final version; it's only for testing
 		if(Input.GetButtonDown("Activate Enemies")){
-			alive = !alive;
+			activated = !activated;
+			anim.SetBool("Activated", !anim.GetBool("Activated"));
 		}
 	}
 
@@ -62,6 +64,12 @@ public class Enemy : LockableTarget {
 			anim.SetTrigger("Clash");
 			print("Clashing");
 
+		}
+	}
+
+	void OnCollisionEnter(Collision col){
+		if(col.gameObject.GetComponent<Environment>()){
+			health.TakeDamage(col.impulse.magnitude/Time.deltaTime);
 		}
 	}
 	void Shoot(){

@@ -7,10 +7,10 @@ using UnityStandardAssets.CrossPlatformInput;
 [RequireComponent (typeof (Health))]
 public class PlayerController: MonoBehaviour {
 
-	private bool isLocked, charging;
+	private bool isLocked, charging, grabbing, inControl= true;
 	private Camera cam;
 	private CameraFollow camFollow;
-	private float boostSpeed, normalSpeed, checkLock, lockOffTime, newLockTime, pseudoTime; 
+	private float boostSpeed, normalSpeed, checkLock, lockOffTime, newLockTime; 
 	private CharacterController charCon;
 	private int targeter;
 	private Transform hand;
@@ -23,14 +23,16 @@ public class PlayerController: MonoBehaviour {
 	public PseudoPlayer pseudo;
 	public Animator anim;
 	public GameObject bullet, bomb, blast, target;
-	public float speed = 150, newLockLimit = 1, rotationSpeed =1, meleeRange = 1, minEnemyDistance, minEnemyAltitudeDistance;
-	public float boostMultiplier;
-	public float lockLimit = 2;
-	public bool isBoosted, moving, canBomb, canAttack = true, shielding = false, makingBomb = false, stunned = false;
+	public float speed = 150, newLockLimit = 1, rotationSpeed =1, meleeRange = 1, minEnemyDistance, minEnemyAltitudeDistance, 
+	boostMultiplier, lockLimit = 2, throwStrength, pseudoDiscrepancySpeed;
+	public bool isBoosted, moving, canBomb, canAttack = true, shielding = false, makingBomb = false, stunned = false, penultimateAttack;
 
+	void Awake(){
+		pseudo = new GameObject("Pseudoplayer").AddComponent<PseudoPlayer>();
+	}
 	void Start (){
 		rb = GetComponent<Rigidbody>();
-		pseudoTime = Time.time;
+		//pseudoTime = Time.time;
 		particles = GetComponentInChildren<ParticleSystem>();
 		particles.startLifetime = 1f;
 		//movement = Vector3.zero;
@@ -51,9 +53,14 @@ public class PlayerController: MonoBehaviour {
 //		newY = 0;
 	}
 	void Update(){
-		if(!stunned){
-			ControlPlayer();
+		if(inControl){
+			if(!stunned){
+				ControlPlayer();
+
+			}
 		}
+		Pause();
+
 		HandleAnimationLayer();
 	}
 	void FixedUpdate () {
@@ -61,16 +68,22 @@ public class PlayerController: MonoBehaviour {
 			charCon.Move(movement * speed * Time.deltaTime);
 		}
 		camFollow.AdjustDamping();
-		pseudo.transform.position = transform.position;
+
+		//give the camera some discrepancy
+		pseudo.transform.position =  Vector3.Lerp(pseudo.transform.position, transform.position, Time.deltaTime * pseudoDiscrepancySpeed);
+		//TODO maybe revert back to just updating the position?
+
 		if(moving){
-			pseudoTime = Time.time;
+			//pseudoTime = Time.time;
 			if(!isLocked){
-				transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(movement), Time.deltaTime * 10);
+				transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(new Vector3(
+				movement.x, 0, movement.z)),
+				Time.deltaTime * 10);
 				if(Input.GetAxis("Right Horizontal") != 0){
 					AdjustPseudo();
 				}
 			}else{
-					transform.LookAt(target.transform);
+				transform.LookAt(new Vector3(target.transform.position.x, transform.position.y, target.transform.position.z));
 			}
 		}else{
 			if(isLocked){
@@ -89,7 +102,7 @@ public class PlayerController: MonoBehaviour {
 		Charge();
 		LockOn();
 		Attack();
-
+		PauseSubweapon();
 	}
 
 	bool CanMove(){
@@ -108,7 +121,11 @@ public class PlayerController: MonoBehaviour {
 	void GetMovement(){
 		float moveY = 0;
 		if(CrossPlatformInputManager.GetButton("Altitude")){
-			moveY = CrossPlatformInputManager.GetAxis("Altitude");
+			if(penultimateAttack){
+				moveY = 0;
+			}else{
+				moveY = CrossPlatformInputManager.GetAxis("Altitude");
+			}
 		}
 		float moveX = CrossPlatformInputManager.GetAxis ("Horizontal");
 		float moveZ = CrossPlatformInputManager.GetAxis ("Vertical");
@@ -140,6 +157,23 @@ public class PlayerController: MonoBehaviour {
 
 
 	}
+	void Pause(){
+		if(CrossPlatformInputManager.GetButtonDown("Pause")){
+			if(Time.timeScale == 0){
+				Time.timeScale = 1;
+				inControl = true;
+			}else if(Time.timeScale > 0){
+				Time.timeScale = 0;
+				inControl = false;
+			}
+		}
+	}
+
+	void PauseSubweapon(){
+		if(Input.GetButton("Subweapon Menu")){
+			Debug.Log("Opening sub menu");
+		}
+	}	
 	void RightStick(){
 		if(!isLocked){
 			float rotateHorizontal = CrossPlatformInputManager.GetAxis("Right Horizontal");
@@ -208,13 +242,8 @@ public class PlayerController: MonoBehaviour {
 			}
 		} else{
 			if(Mathf.Round(CrossPlatformInputManager.GetAxis("LockOn")) > 0 && isLocked){ //holding down button while locked on
-				
 				if(canLockOff()){
-					lockOffTime = Time.time;
-					target = null;
-					isLocked = false;
-
-					camFollow.SlowDamping();
+					LockOff();
 				}
 			}else{
 				lockOffTime = Time.time;
@@ -234,6 +263,12 @@ public class PlayerController: MonoBehaviour {
 		}
 	}
 
+	void LockOff(){
+		lockOffTime = Time.time;
+		target = null;
+		isLocked = false;
+		camFollow.SlowDamping();
+	}
 	private bool CanLockOn(){
 		float lockOn =  Mathf.Round(CrossPlatformInputManager.GetAxis("LockOn"));
 		if(lockOn != checkLock){
@@ -305,9 +340,8 @@ public class PlayerController: MonoBehaviour {
 
 
 
-	public void AllowShoot(){
+	public void AllowAttack(){
 		canAttack = true;
-
 	}
 
 	void Attack(){
@@ -354,13 +388,47 @@ public class PlayerController: MonoBehaviour {
 		anim.SetBool("Shielding", true);
 		normalSpeed = normalSpeed/2;
 		isBoosted = false;
-	}
+	}	
 
 	void UseSubweapon(){
-		Debug.Log("Subweapon used");
+		anim.SetTrigger("Subweapon");
 		canAttack = true;
-
 	}
+
+	public void GrabOrThrow(){
+		if(!grabbing){
+			anim.SetTrigger("Grab");
+		}else{
+			anim.SetTrigger("Throw");
+		}
+	}
+
+	public void Grab(GameObject grabbedObject){
+		grabbedObject.transform.root.SetParent(GetComponentInChildren<Grabber>().transform);
+		grabbing = true;
+		if(grabbedObject.GetComponent<Grabbable>()){
+			grabbedObject.GetComponent<Grabbable>().grabbed = true;
+		}
+//		if(grabbedObject.GetComponent<CharacterController>()){
+//			grabbedObject.GetComponent<CharacterController>().enabled = false;
+//		}
+		grabbedObject.tag = "Untagged";
+		LockOff();
+		//HandleLock();
+	}
+
+	public void Throw(){
+		GameObject grabbedObject = GetComponentInChildren<Grabber>().GetComponentInChildren<Grabbable>().gameObject;
+		grabbedObject.transform.parent = null;
+		grabbing = false;
+		if(grabbedObject.GetComponent<Grabbable>()){
+			grabbedObject.GetComponent<Grabbable>().grabbed = false;
+		}
+		grabbedObject.tag = "Lockable";
+		grabbedObject.GetComponent<Rigidbody>().AddForce(transform.forward * throwStrength, ForceMode.Impulse);
+		HandleLock();
+	}
+
 	void MeleeAttack(){
 		if(!isBoosted && !charging){//stationary shot
 			anim.SetTrigger("Begin Melee Combo");
@@ -455,7 +523,7 @@ public class PlayerController: MonoBehaviour {
 
 	void ShootBullet(){
 
-		hand = GetComponentInChildren<Shooter>().transform;
+		hand = GetComponentInChildren<Grabber>().transform;
 		GameObject shot = Instantiate(bullet, hand.position + transform.forward, Quaternion.identity) as GameObject;
 		shot.GetComponent<Projectile>().SetShooter(this.gameObject);
 		Quaternion q = Quaternion.FromToRotation(Vector3.up, transform.forward);
@@ -467,5 +535,9 @@ public class PlayerController: MonoBehaviour {
 	void AdjustPseudo(){
 		Vector3 newDir = Vector3.RotateTowards(pseudo.transform.forward, transform.forward, Time.deltaTime * 5, 5f);
 		pseudo.transform.rotation = Quaternion.LookRotation(newDir);
+	}
+	//Use for debugging animator/animation errors
+	void CheckAnimation(){
+		print("Animating");
 	}
 }
