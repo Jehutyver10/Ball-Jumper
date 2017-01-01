@@ -25,7 +25,7 @@ public class PlayerController: MonoBehaviour {
 	public GameObject bullet, bomb, blast, target;
 	public float speed = 150, newLockLimit = 1, rotationSpeed =1, meleeRange = 1, minEnemyDistance, minEnemyAltitudeDistance, 
 	boostMultiplier, lockLimit = 2, throwStrength, pseudoDiscrepancySpeed;
-	public bool isBoosted, moving, canBomb, canAttack = true, shielding = false, makingBomb = false, stunned = false, penultimateAttack;
+	public bool isBoosted, moving, canBomb, canAttack = true, shielding = false, makingBomb = false, stunned = false, penultimateAttack, isAttacking = false;
 
 	void Awake(){
 		pseudo = new GameObject("Pseudoplayer").AddComponent<PseudoPlayer>();
@@ -106,11 +106,13 @@ public class PlayerController: MonoBehaviour {
 	}
 
 	bool CanMove(){
-		if(makingBomb){
+		if (makingBomb) {
 			return false;
-		}else if(charging){
+		} else if (charging) {
 			return false;
-		} else if(isBoosted){
+		} else if (isAttacking) {
+			return false;
+		}else if(isBoosted){
 			return true;
 		}else{
 			return true;

@@ -2,11 +2,14 @@
 using System.Collections;
 
 public class PlayerIdle : StateMachineBehaviour {
+		/// <summary>
+		/// this resets all the player's booleans and whatnot to their default state during the idle animation		/// </summary>
 		Weapon weapon;
 		GameObject weaponTrail;
 	 // OnStateEnter is called when a transition starts and the state machine starts to evaluate this state
 	override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
 		animator.GetComponent<PlayerController>().AllowAttack();
+		animator.GetComponent<PlayerController>().isAttacking = false;
 		animator.applyRootMotion = true;
 		//this is the only way I could think to get the weapon renderer, weapon collider, and weapon trail to work for the last attack. don't ask me why.
 		weapon = animator.GetComponentInChildren<Weapon>(); //finds the player's weapon
