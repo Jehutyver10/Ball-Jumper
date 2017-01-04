@@ -14,7 +14,9 @@ public class EnemyHealth : HealthText {
 	// Update is called once per frame
 	void Update () {
 		if (player.target) {
-			GetComponent<Text>().text = associatedObjectName + ": " + player.target.GetComponent<Health>().health;
+			if(player.target.GetComponent<Enemy>()){
+				GetComponent<Text>().text = associatedObjectName + ": " + player.target.GetComponent<Health>().health;
+			}
 		} else {
 			GetComponent<Text> ().text = null;
 		}

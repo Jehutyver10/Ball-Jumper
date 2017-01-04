@@ -3,6 +3,7 @@ using System.Collections;
 
 public class Health : MonoBehaviour {
 	public float health = 1000;
+	public float maxHealth = 1000;
 	// Use this for initialization
 	void Start () {
 	
@@ -10,7 +11,9 @@ public class Health : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-	
+		if (health > maxHealth) {
+			health = maxHealth;
+		}
 	}
 
 	public void TakeDamage(float damage, bool knockback = false){
@@ -22,4 +25,14 @@ public class Health : MonoBehaviour {
 			GetComponent<Animator>().SetTrigger("Take Damage");
 		}
 	}
+
+	public void RestoreHealth(float healthRestored){
+		if (health + healthRestored > maxHealth) {
+			health = maxHealth; //prevents overflow
+		} else {
+			health += healthRestored;
+		}
+
+	}
+
 }

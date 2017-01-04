@@ -14,6 +14,8 @@ public class PlayerHealth : HealthText {
 	
 	// Update is called once per frame
 	void Update () {
+		text.text = associatedObjectName + ": " + health.health;
+
 		
 	}
 }

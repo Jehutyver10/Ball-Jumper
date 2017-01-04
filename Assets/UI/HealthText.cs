@@ -12,7 +12,4 @@ public class HealthText : MonoBehaviour {
 	}
 	
 	// Update is called once per frame
-	void Update () {
-		text.text = associatedObjectName + ": " + health.health;
-	}
 }
