@@ -7,12 +7,12 @@ using UnityStandardAssets.CrossPlatformInput;
 [RequireComponent (typeof (Health))]
 public class PlayerController: MonoBehaviour {
 
-	private bool isLocked, charging, grabbing, paused = false, inControl= true;
+	private bool isLocked, charging, grabbing, paused = false, inControl= true, vertAxisUp = false, vertAxisDown = false;
 	private Camera cam;
 
 	private float boostSpeed, normalSpeed, checkLock, lockOffTime, newLockTime; 
 	private CharacterController charCon;
-	private int targeter, subweaponCounter;
+	private int targeter;
 	private Transform hand;
 	private GameObject[] targets;
 	private Weapon weapon;
@@ -20,6 +20,7 @@ public class PlayerController: MonoBehaviour {
 	private ParticleSystem particles;
 	public string currentSubweapon;
 
+	public int subweaponCounter;
 	public string[] subweapons;
 	public CameraFollow camFollow;
 	public GameManager gm;
@@ -182,18 +183,25 @@ public class PlayerController: MonoBehaviour {
 
 	void PauseSubweapon(){
 		//open the subweapon menu while the button is down
-
 		if (inControl) {
 			if (Input.GetButton ("Subweapon Menu")) {
-				Debug.Log ("Opening sub menu");
 				gm.ShowSubMenu (subweapons);
-				if(Input.GetAxis("Vertical") != 0){
-					if (Input.GetAxisRaw ("Vertical") < 0) {
-						subweaponCounter -= 1;
-					} else {
-						subweaponCounter += 1;
+				if (Input.GetAxisRaw ("Vertical") < 0 && !vertAxisDown) {
+					vertAxisDown = true;
+					vertAxisUp = false;
+					subweaponCounter -= 1;
+					if (subweaponCounter < 0) {
+						subweaponCounter = subweapons.Length - 1;
 					}
-					print (subweaponCounter);
+				} else if (Input.GetAxisRaw ("Vertical") > 0 && !vertAxisUp) {
+					vertAxisUp = true;
+					vertAxisDown = false;
+					subweaponCounter += 1;
+				} else if(Input.GetAxisRaw("Vertical") == 0){
+					
+				
+					vertAxisUp = false;
+					vertAxisDown = false;
 				}
 
 				currentSubweapon = subweapons[(subweaponCounter) % subweapons.Length];
