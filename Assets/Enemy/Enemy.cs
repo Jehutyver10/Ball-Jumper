@@ -69,7 +69,7 @@ public class Enemy : LockableTarget {
 
 	void OnCollisionEnter(Collision col){
 		if(col.gameObject.GetComponent<Environment>()){
-			health.TakeDamage(col.impulse.magnitude/Time.deltaTime);
+			health.TakeDamage(col.impulse.magnitude * 2);
 		}
 	}
 	void Shoot(){

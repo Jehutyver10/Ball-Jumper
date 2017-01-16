@@ -26,6 +26,7 @@ public class Melee : StateMachineBehaviour {
 		weapon.GetComponent<Collider>().enabled = true;
 		weaponTrail.SetActive(true);		
 
+		player.isAttacking = true;
 		animator.applyRootMotion = false;
 		animator.SetBool("Can Clash", true);
 		MeleeLimit = 2f;

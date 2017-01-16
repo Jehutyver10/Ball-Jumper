@@ -7,9 +7,9 @@ using UnityStandardAssets.CrossPlatformInput;
 [RequireComponent (typeof (Health))]
 public class PlayerController: MonoBehaviour {
 
-	private bool isLocked, charging, grabbing, inControl= true;
+	private bool isLocked, charging, grabbing, paused = false, inControl= true, vertAxisUp = false, vertAxisDown = false;
 	private Camera cam;
-	private CameraFollow camFollow;
+
 	private float boostSpeed, normalSpeed, checkLock, lockOffTime, newLockTime; 
 	private CharacterController charCon;
 	private int targeter;
@@ -18,14 +18,19 @@ public class PlayerController: MonoBehaviour {
 	private Weapon weapon;
 	private Vector3 movement;
 	private ParticleSystem particles;
+	public string currentSubweapon;
 
+	public int subweaponCounter;
+	public string[] subweapons;
+	public CameraFollow camFollow;
+	public GameManager gm;
 	public Rigidbody rb;
 	public PseudoPlayer pseudo;
 	public Animator anim;
-	public GameObject bullet, bomb, blast, target;
+	public GameObject bullet, bomb, blast, knockoutPunch, target;
 	public float speed = 150, newLockLimit = 1, rotationSpeed =1, meleeRange = 1, minEnemyDistance, minEnemyAltitudeDistance, 
 	boostMultiplier, lockLimit = 2, throwStrength, pseudoDiscrepancySpeed;
-	public bool isBoosted, moving, canBomb, canAttack = true, shielding = false, makingBomb = false, stunned = false, penultimateAttack;
+	public bool isBoosted, moving, canBomb, canAttack = true, shielding = false, makingBomb = false, stunned = false, penultimateAttack, isAttacking = false;
 
 	void Awake(){
 		pseudo = new GameObject("Pseudoplayer").AddComponent<PseudoPlayer>();
@@ -46,10 +51,13 @@ public class PlayerController: MonoBehaviour {
 		isLocked = false;
 		canBomb = true;
 		target = null;
+		currentSubweapon = subweapons [0];
+		subweaponCounter = 0;
 
 		normalSpeed = speed;
 		boostSpeed = speed * boostMultiplier;
-		camFollow = FindObjectOfType<CameraFollow>();
+
+
 //		newY = 0;
 	}
 	void Update(){
@@ -106,11 +114,13 @@ public class PlayerController: MonoBehaviour {
 	}
 
 	bool CanMove(){
-		if(makingBomb){
+		if (makingBomb) {
 			return false;
-		}else if(charging){
+		} else if (charging) {
 			return false;
-		} else if(isBoosted){
+		} else if (isAttacking) {
+			return false;
+		}else if(isBoosted){
 			return true;
 		}else{
 			return true;
@@ -159,19 +169,46 @@ public class PlayerController: MonoBehaviour {
 	}
 	void Pause(){
 		if(CrossPlatformInputManager.GetButtonDown("Pause")){
-			if(Time.timeScale == 0){
-				Time.timeScale = 1;
+			if(paused){
+				gm.Unpause ();
 				inControl = true;
-			}else if(Time.timeScale > 0){
-				Time.timeScale = 0;
+				paused = false;
+			}else if(!paused){
+				gm.Pause ();
+				paused = true;
 				inControl = false;
 			}
 		}
 	}
 
 	void PauseSubweapon(){
-		if(Input.GetButton("Subweapon Menu")){
-			Debug.Log("Opening sub menu");
+		//open the subweapon menu while the button is down
+		if (inControl) {
+			if (Input.GetButton ("Subweapon Menu")) {
+				gm.ShowSubMenu (subweapons);
+				if (Input.GetAxisRaw ("Vertical") < 0 && !vertAxisDown) {
+					vertAxisDown = true;
+					vertAxisUp = false;
+					subweaponCounter -= 1;
+					if (subweaponCounter < 0) {
+						subweaponCounter = subweapons.Length - 1;
+					}
+				} else if (Input.GetAxisRaw ("Vertical") > 0 && !vertAxisUp) {
+					vertAxisUp = true;
+					vertAxisDown = false;
+					subweaponCounter += 1;
+				} else if(Input.GetAxisRaw("Vertical") == 0){
+					
+				
+					vertAxisUp = false;
+					vertAxisDown = false;
+				}
+
+				currentSubweapon = subweapons[(subweaponCounter) % subweapons.Length];
+			} 
+			else {
+				gm.CollapseSubMenu (currentSubweapon);
+			}
 		}
 	}	
 	void RightStick(){
@@ -418,15 +455,32 @@ public class PlayerController: MonoBehaviour {
 	}
 
 	public void Throw(){
-		GameObject grabbedObject = GetComponentInChildren<Grabber>().GetComponentInChildren<Grabbable>().gameObject;
-		grabbedObject.transform.parent = null;
-		grabbing = false;
-		if(grabbedObject.GetComponent<Grabbable>()){
-			grabbedObject.GetComponent<Grabbable>().grabbed = false;
+		if (GetComponentInChildren<Grabber> ().GetComponentInChildren<Grabbable> ()) {
+			GameObject grabbedObject = GetComponentInChildren<Grabber> ().GetComponentInChildren<Grabbable> ().gameObject;
+			grabbedObject.transform.parent = null;
+			if (grabbedObject.GetComponent<Grabbable> ()) {
+				grabbedObject.GetComponent<Grabbable> ().grabbed = false;
+			}
+			grabbedObject.tag = "Lockable";
+			grabbedObject.GetComponent<Rigidbody> ().AddForce (transform.forward * throwStrength, ForceMode.Impulse);
 		}
-		grabbedObject.tag = "Lockable";
-		grabbedObject.GetComponent<Rigidbody>().AddForce(transform.forward * throwStrength, ForceMode.Impulse);
+		grabbing = false;
+
 		HandleLock();
+	}
+
+	public void Knockout(){
+		anim.SetTrigger ("Knockout");
+
+	}
+	 public void KnockoutPunch(){
+
+		hand = GetComponentInChildren<Grabber>().transform;
+		GameObject shot = Instantiate(knockoutPunch, hand.position + transform.forward, Quaternion.identity) as GameObject;
+		shot.GetComponent<Projectile>().SetShooter(this.gameObject);
+		shot.transform.rotation = transform.rotation;
+		shot.GetComponent<Rigidbody>().AddForce(transform.forward * shot.GetComponent<Projectile>().speed, ForceMode.Impulse);
+
 	}
 
 	void MeleeAttack(){
