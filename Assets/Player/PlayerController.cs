@@ -7,7 +7,7 @@ using UnityStandardAssets.CrossPlatformInput;
 [RequireComponent (typeof (Health))]
 public class PlayerController: MonoBehaviour {
 
-	private bool isLocked, charging, grabbing, inControl= true;
+	private bool isLocked, charging, grabbing, paused = false, inControl= true;
 	private Camera cam;
 	private CameraFollow camFollow;
 	private float boostSpeed, normalSpeed, checkLock, lockOffTime, newLockTime; 
@@ -19,6 +19,7 @@ public class PlayerController: MonoBehaviour {
 	private Vector3 movement;
 	private ParticleSystem particles;
 
+	public GameManager gm;
 	public Rigidbody rb;
 	public PseudoPlayer pseudo;
 	public Animator anim;
@@ -161,19 +162,29 @@ public class PlayerController: MonoBehaviour {
 	}
 	void Pause(){
 		if(CrossPlatformInputManager.GetButtonDown("Pause")){
-			if(Time.timeScale == 0){
-				Time.timeScale = 1;
+			if(paused){
+				gm.Unpause ();
 				inControl = true;
-			}else if(Time.timeScale > 0){
-				Time.timeScale = 0;
+				paused = false;
+			}else if(!paused){
+				gm.Pause ();
+				paused = true;
 				inControl = false;
 			}
 		}
 	}
 
 	void PauseSubweapon(){
-		if(Input.GetButton("Subweapon Menu")){
-			Debug.Log("Opening sub menu");
+		//open the subweapon menu while the button is down
+
+		if (inControl) {
+			if (Input.GetButton ("Subweapon Menu")) {
+				Debug.Log ("Opening sub menu");
+				gm.Pause ();
+			} 
+			else {
+				gm.Unpause ();
+			}
 		}
 	}	
 	void RightStick(){

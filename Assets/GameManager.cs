@@ -5,6 +5,7 @@ using UnityEngine.UI;
 public class GameManager : MonoBehaviour {
 	public GameObject enemy;
 	public HealthText enemyText;
+	public bool paused = false;
 	// Use this for initialization
 	void Start () {
 	
@@ -21,4 +22,15 @@ public class GameManager : MonoBehaviour {
 		}
 	
 	}
+
+	public void Pause(){
+		Time.timeScale = 0;
+		paused = false;
+	}
+
+	public void Unpause(){
+		Time.timeScale = 1;
+		paused = true;
+	}
+
 }
