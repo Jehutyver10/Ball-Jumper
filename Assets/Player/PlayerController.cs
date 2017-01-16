@@ -27,7 +27,7 @@ public class PlayerController: MonoBehaviour {
 	public Rigidbody rb;
 	public PseudoPlayer pseudo;
 	public Animator anim;
-	public GameObject bullet, bomb, blast, target;
+	public GameObject bullet, bomb, blast, knockoutPunch, target;
 	public float speed = 150, newLockLimit = 1, rotationSpeed =1, meleeRange = 1, minEnemyDistance, minEnemyAltitudeDistance, 
 	boostMultiplier, lockLimit = 2, throwStrength, pseudoDiscrepancySpeed;
 	public bool isBoosted, moving, canBomb, canAttack = true, shielding = false, makingBomb = false, stunned = false, penultimateAttack, isAttacking = false;
@@ -464,6 +464,21 @@ public class PlayerController: MonoBehaviour {
 		grabbedObject.tag = "Lockable";
 		grabbedObject.GetComponent<Rigidbody>().AddForce(transform.forward * throwStrength, ForceMode.Impulse);
 		HandleLock();
+	}
+
+	public void Knockout(){
+		anim.SetTrigger ("Knockout");
+
+	}
+	 public void KnockoutPunch(){
+
+		hand = GetComponentInChildren<Grabber>().transform;
+		GameObject shot = Instantiate(knockoutPunch, hand.position + transform.forward, Quaternion.identity) as GameObject;
+		shot.GetComponent<Projectile>().SetShooter(this.gameObject);
+		Quaternion q = Quaternion.FromToRotation(Vector3.up, transform.forward);
+		shot.transform.rotation = q * shot.transform.rotation;
+		shot.GetComponent<Rigidbody>().AddForce(transform.forward * shot.GetComponent<Projectile>().speed, ForceMode.Impulse);
+
 	}
 
 	void MeleeAttack(){

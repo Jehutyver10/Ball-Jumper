@@ -8,7 +8,12 @@ public class ChooseSubweapon : StateMachineBehaviour {
 	override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
 		player = animator.GetComponent<PlayerController>();
 		//TODO make a means by which each subweapon can be selected
-		player.GrabOrThrow();
+		if (player.currentSubweapon == "Grab") {
+			player.GrabOrThrow ();
+		} else if(player.currentSubweapon == "Knockout"){
+			player.Knockout();
+		}
+
 	}
 
 	// OnStateUpdate is called on each Update frame between OnStateEnter and OnStateExit callbacks
