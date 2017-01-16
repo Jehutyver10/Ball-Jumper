@@ -6,6 +6,7 @@ public class GameManager : MonoBehaviour {
 	public GameObject enemy;
 	public HealthText enemyText;
 	public bool paused = false;
+	public Text subWeaponMenu;
 	// Use this for initialization
 	void Start () {
 	
@@ -32,5 +33,17 @@ public class GameManager : MonoBehaviour {
 		Time.timeScale = 1;
 		paused = true;
 	}
-
+		
+	public void	ShowSubMenu(string[] subweaponList){
+		Pause ();
+		foreach (string subweapon in subweaponList) {
+			if (!subWeaponMenu.text.Contains (subweapon)) {
+				subWeaponMenu.text = subWeaponMenu.text + "\n" + subweapon;
+			}
+		}
+	}
+	public void CollapseSubMenu(string selectedSubWeapon){
+		Unpause ();
+		subWeaponMenu.text = selectedSubWeapon;
+	}
 }

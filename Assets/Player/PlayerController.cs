@@ -9,16 +9,19 @@ public class PlayerController: MonoBehaviour {
 
 	private bool isLocked, charging, grabbing, paused = false, inControl= true;
 	private Camera cam;
-	private CameraFollow camFollow;
+
 	private float boostSpeed, normalSpeed, checkLock, lockOffTime, newLockTime; 
 	private CharacterController charCon;
-	private int targeter;
+	private int targeter, subweaponCounter;
 	private Transform hand;
 	private GameObject[] targets;
 	private Weapon weapon;
 	private Vector3 movement;
 	private ParticleSystem particles;
+	public string currentSubweapon;
 
+	public string[] subweapons;
+	public CameraFollow camFollow;
 	public GameManager gm;
 	public Rigidbody rb;
 	public PseudoPlayer pseudo;
@@ -47,10 +50,13 @@ public class PlayerController: MonoBehaviour {
 		isLocked = false;
 		canBomb = true;
 		target = null;
+		currentSubweapon = subweapons [0];
+		subweaponCounter = 0;
 
 		normalSpeed = speed;
 		boostSpeed = speed * boostMultiplier;
-		camFollow = FindObjectOfType<CameraFollow>();
+
+
 //		newY = 0;
 	}
 	void Update(){
@@ -180,10 +186,20 @@ public class PlayerController: MonoBehaviour {
 		if (inControl) {
 			if (Input.GetButton ("Subweapon Menu")) {
 				Debug.Log ("Opening sub menu");
-				gm.Pause ();
+				gm.ShowSubMenu (subweapons);
+				if(Input.GetAxis("Vertical") != 0){
+					if (Input.GetAxisRaw ("Vertical") < 0) {
+						subweaponCounter -= 1;
+					} else {
+						subweaponCounter += 1;
+					}
+					print (subweaponCounter);
+				}
+
+				currentSubweapon = subweapons[(subweaponCounter) % subweapons.Length];
 			} 
 			else {
-				gm.Unpause ();
+				gm.CollapseSubMenu (currentSubweapon);
 			}
 		}
 	}	
