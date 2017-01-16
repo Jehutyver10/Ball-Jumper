@@ -23,9 +23,9 @@ public class KnockoutPunch : Projectile {
 			col.GetComponentInParent<Health>().TakeDamage(damage);
 		}
 		if (col.GetComponentInParent<Rigidbody>()) {
-			col.GetComponentInParent<Rigidbody> ().AddForce (col.transform.forward * -1 * knockback, ForceMode.Impulse);
+			col.GetComponentInParent<Rigidbody> ().AddForce (transform.forward * knockback, ForceMode.Impulse);
 		}
-		Destroy(this.gameObject);
+		Destroy(gameObject);
 	}
 
 	void OnCollisionEnter(Collision col){

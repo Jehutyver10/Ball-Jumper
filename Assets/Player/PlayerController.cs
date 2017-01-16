@@ -455,14 +455,17 @@ public class PlayerController: MonoBehaviour {
 	}
 
 	public void Throw(){
-		GameObject grabbedObject = GetComponentInChildren<Grabber>().GetComponentInChildren<Grabbable>().gameObject;
-		grabbedObject.transform.parent = null;
-		grabbing = false;
-		if(grabbedObject.GetComponent<Grabbable>()){
-			grabbedObject.GetComponent<Grabbable>().grabbed = false;
+		if (GetComponentInChildren<Grabber> ().GetComponentInChildren<Grabbable> ()) {
+			GameObject grabbedObject = GetComponentInChildren<Grabber> ().GetComponentInChildren<Grabbable> ().gameObject;
+			grabbedObject.transform.parent = null;
+			if (grabbedObject.GetComponent<Grabbable> ()) {
+				grabbedObject.GetComponent<Grabbable> ().grabbed = false;
+			}
+			grabbedObject.tag = "Lockable";
+			grabbedObject.GetComponent<Rigidbody> ().AddForce (transform.forward * throwStrength, ForceMode.Impulse);
 		}
-		grabbedObject.tag = "Lockable";
-		grabbedObject.GetComponent<Rigidbody>().AddForce(transform.forward * throwStrength, ForceMode.Impulse);
+		grabbing = false;
+
 		HandleLock();
 	}
 
@@ -475,8 +478,7 @@ public class PlayerController: MonoBehaviour {
 		hand = GetComponentInChildren<Grabber>().transform;
 		GameObject shot = Instantiate(knockoutPunch, hand.position + transform.forward, Quaternion.identity) as GameObject;
 		shot.GetComponent<Projectile>().SetShooter(this.gameObject);
-		Quaternion q = Quaternion.FromToRotation(Vector3.up, transform.forward);
-		shot.transform.rotation = q * shot.transform.rotation;
+		shot.transform.rotation = transform.rotation;
 		shot.GetComponent<Rigidbody>().AddForce(transform.forward * shot.GetComponent<Projectile>().speed, ForceMode.Impulse);
 
 	}

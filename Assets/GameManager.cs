@@ -18,7 +18,9 @@ public class GameManager : MonoBehaviour {
 		if(Input.GetButtonDown("Activate Enemies")){
 			if(GameObject.FindObjectOfType<Enemy>() == null){
 				GameObject newEnemy = Instantiate(enemy, enemy.transform.position, Quaternion.identity) as GameObject;
-				enemyText.health = newEnemy.GetComponent<Health>();
+//				if (newEnemy.GetComponent<Health> ()) {
+//					enemyText.health = newEnemy.GetComponent<Health> ();
+//				}
 			}
 		}
 	
