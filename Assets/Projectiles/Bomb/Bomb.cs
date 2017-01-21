@@ -31,9 +31,9 @@ public class Bomb : Projectile {
 		if(Input.GetAxis("Boost") == 0){
 			anim.SetTrigger("Fire Bomb");
 		}
-		if(player.target){
-			transform.position = Vector3.MoveTowards(transform.position, player.target.transform.position, speed * Time.deltaTime);
-		}	
+		if (player.target) {
+			transform.position = Vector3.MoveTowards (transform.position, player.target.transform.position, speed * Time.deltaTime);
+		}
 		if(canFire){
 			Shoot();
 		}
@@ -80,7 +80,7 @@ public class Bomb : Projectile {
 			GetComponent<Rigidbody>().AddForce(transform.forward * speed, ForceMode.Impulse);
 
 		}else{
-			GetComponent<Rigidbody>().AddForce(forward * speed, ForceMode.Impulse);
+			GetComponent<Rigidbody>().AddForce(forward * speed, ForceMode.VelocityChange);
 		}
 		//Quaternion q = Quaternion.FromToRotation(Vector3.up, forward);
 		//transform.rotation = q * transform.rotation;
