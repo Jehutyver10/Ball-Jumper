@@ -14,7 +14,7 @@ public class Melee : StateMachineBehaviour {
 		target = animator.GetComponent<PlayerController>().target;//finds the target of the player
 		player = animator.GetComponent<PlayerController>();//finds player
 		weapon = animator.GetComponentInChildren<Weapon>(); //finds the player's weapon
-		weaponTrail = weapon.transform.FindChild("Player Weapon Trail").gameObject;
+		weaponTrail = weapon.transform.Find("Player Weapon Trail").gameObject;
 		weapon.active = true;
 		if(downswing){
 			weapon.downswing = true;

@@ -13,7 +13,7 @@ public class PlayerIdle : StateMachineBehaviour {
 		animator.applyRootMotion = true;
 		//this is the only way I could think to get the weapon renderer, weapon collider, and weapon trail to work for the last attack. don't ask me why.
 		weapon = animator.GetComponentInChildren<Weapon>(); //finds the player's weapon
-		weaponTrail = weapon.transform.FindChild("Player Weapon Trail").gameObject;
+		weaponTrail = weapon.transform.Find("Player Weapon Trail").gameObject;
 
 		weaponTrail.SetActive(false);
 		weapon.active = false;

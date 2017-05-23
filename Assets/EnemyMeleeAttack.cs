@@ -9,7 +9,7 @@ public class EnemyMeleeAttack : StateMachineBehaviour {
      //OnStateEnter is called before OnStateEnter is called on any state inside this state machine
 	override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
 		weapon = animator.GetComponentInChildren<EnemyWeapon>(); //finds the player's weapon
-		weaponTrail = weapon.transform.FindChild("Enemy Weapon Trail").gameObject;
+		weaponTrail = weapon.transform.Find("Enemy Weapon Trail").gameObject;
 		weapon.active = true;
 		weapon.hit = false;
 		weaponTrail.SetActive(true);
