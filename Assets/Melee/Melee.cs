@@ -34,7 +34,8 @@ public class Melee : StateMachineBehaviour {
 		
 	// OnStateUpdate is called on each Update frame between OnStateEnter and OnStateExit callbacks
 	override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
-		if(isLastHit){
+		if(isLastHit){		
+			player.isLastAttack = true;
 			weapon.knockback = true;
 		}
 
@@ -83,8 +84,9 @@ public class Melee : StateMachineBehaviour {
 		if(target){
 			if(Vector3.Distance(player.transform.position, target.transform.position) > MeleeLimit){
 				player.transform.LookAt(new Vector3(target.transform.position.x, target.transform.position.y, target.transform.position.z));
-				if(!isLastHit){
-					player.GetComponent<CharacterController>().Move((target.transform.position - player.transform.position) * Time.deltaTime * player.speed);
+				if (!player.isLastAttack) {
+					player.GetComponent<CharacterController> ().Move ((target.transform.position - player.transform.position) * Time.deltaTime * player.speed);
+
 				}
 			}
 		}

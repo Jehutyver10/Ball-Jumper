@@ -10,6 +10,7 @@ public class PlayerIdle : StateMachineBehaviour {
 	override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
 		animator.GetComponent<PlayerController>().AllowAttack();
 		animator.GetComponent<PlayerController>().isAttacking = false;
+		animator.GetComponent<PlayerController> ().isLastAttack = false;
 		animator.applyRootMotion = true;
 		//this is the only way I could think to get the weapon renderer, weapon collider, and weapon trail to work for the last attack. don't ask me why.
 		weapon = animator.GetComponentInChildren<Weapon>(); //finds the player's weapon
@@ -21,6 +22,7 @@ public class PlayerIdle : StateMachineBehaviour {
 		weapon.GetComponent<Collider>().enabled = false;
 		weapon.downswing = false;
 		weapon.upswing = false;
+
 	}
 
 	// OnStateUpdate is called on each Update frame between OnStateEnter and OnStateExit callbacks

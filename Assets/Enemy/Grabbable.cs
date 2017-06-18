@@ -13,7 +13,7 @@ public class Grabbable : MonoBehaviour {
 	void Update () {
 		if(grabbed){
 			if(GetComponent<Enemy>()){
-				GetComponent<Enemy>().activated = false;
+				GetComponent<Enemy>().alive = false;
 			}
 		}
 	}

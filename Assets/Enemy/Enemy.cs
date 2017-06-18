@@ -2,8 +2,10 @@
 using System.Collections;
 [RequireComponent (typeof (Health))]
 public class Enemy : LockableTarget {
-	public bool canBeHomedInOn, alive = false, activated = false;
-	public float shotsPerSecond, meleeLimit, detectionRange, speed;
+	private float probability;
+
+	public bool canBeHomedInOn, active = false, alive = false;
+	public float shotsPerSecond, meleeLimit, detectionRange, speed, smoothing = 1; 
 	public GameObject laser;
 	public EnemyWeapon weapon;
 	public PseudoEnemy pseudo;
@@ -24,35 +26,72 @@ public class Enemy : LockableTarget {
 		health = GetComponent<Health>();
 		weapon = GetComponentInChildren<EnemyWeapon>();
 		pseudo = GetComponentInChildren<PseudoEnemy>();
+		StartCoroutine ("Idle");
 	}
 
 	// Update is called once per frame
 	void Update(){
-		if(activated){
+		probability = Time.deltaTime * shotsPerSecond;
+		if(alive){
+
 			transform.LookAt(target.GetComponent<PlayerController>().pseudo.transform);
-			float probability = Time.deltaTime * shotsPerSecond;
-			if(Mathf.Abs(Vector3.Distance(target.transform.position, transform.position)) < detectionRange){//check if player is within enemy's detection range
-				alive = true;
-			}else{	
-				alive = false;
-			}
-			if(alive){
-				if(Vector3.Distance(target.transform.position, transform.position) > meleeLimit){ //check if outside melee limit
-					anim.ResetTrigger("Melee Attack");
-					if(Random.value < probability){
-						Shoot();
-					}
-				}else{
-					anim.SetTrigger("Melee Attack");
-				}
-			}
+		
+//			if(active){
+//				if(Vector3.Distance(target.transform.position, transform.position) > meleeLimit){ //check if outside melee limit
+//					anim.ResetTrigger("Melee Attack");
+//					if(Random.value < probability){
+//						Shoot();
+//					}
+//				}else{
+//					anim.SetTrigger("Melee Attack");
+//				}
+//			}
+
+
 		}
 
 		//TODO remove this in final version; it's only for testing
 		if(Input.GetButtonDown("Activate Enemies")){
-			activated = !activated;
+			alive = !alive;
 			anim.SetBool("Activated", !anim.GetBool("Activated"));
 		}
+	}
+
+	IEnumerator Idle () { //business as usual until the target appears within range
+		while(Vector3.Distance(transform.position, target.transform.position) > detectionRange)
+		{
+			active = false;
+			//TODO put some patrol code here or something? 
+			yield return null;
+		}
+		active = true;
+		StartCoroutine ("Pursue");
+	}
+
+	IEnumerator Pursue () {//once detected);
+		while (active && Vector3.Distance( transform.position, target.transform.position) > meleeLimit) {
+			if (Vector3.Distance (transform.position, target.transform.position) < detectionRange) {//if not yet approached
+				transform.position = Vector3.Lerp (transform.position, target.transform.position, smoothing * Time.deltaTime);
+				anim.ResetTrigger ("Melee Attack");
+				if (Random.value < probability) {
+					Shoot ();
+				}
+				yield return null;
+			} else { 
+				StartCoroutine ("Idle");
+				yield break;
+			}
+		}
+		StartCoroutine ("MeleeAttack");
+	}
+
+	IEnumerator MeleeAttack(){
+		while (active && Vector3.Distance (transform.position, target.transform.position) < meleeLimit) {
+			anim.SetTrigger ("Melee Attack");
+			yield return null;
+		}
+		StartCoroutine ("Pursue");
+
 	}
 
 	void SetTarget(){
@@ -63,7 +102,6 @@ public class Enemy : LockableTarget {
 		if(weapon.damage == weapon.comboDamage){
 			anim.SetTrigger("Clash");
 			print("Clashing");
-
 		}
 	}
 
