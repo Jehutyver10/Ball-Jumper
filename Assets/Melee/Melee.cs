@@ -16,6 +16,7 @@ public class Melee : StateMachineBehaviour {
 		weapon = animator.GetComponentInChildren<Weapon>(); //finds the player's weapon
 		weaponTrail = weapon.transform.Find("Player Weapon Trail").gameObject;
 		weapon.active = true;
+
 		if(downswing){
 			weapon.downswing = true;
 		}
@@ -43,12 +44,12 @@ public class Melee : StateMachineBehaviour {
 			player.penultimateAttack = true;
 			if(!isLastHit){
 				if(isPenultimateHit){
-					if(CrossPlatformInputManager.GetAxis("Altitude") > 0 && canAttack){
+					if(Mathf.RoundToInt(CrossPlatformInputManager.GetAxis("Altitude")) > 0 && canAttack){
 						
 						animator.SetTrigger("Upswing");
 						canAttack = false;
 
-					}else if(CrossPlatformInputManager.GetAxis("Altitude") < 0 && canAttack){
+					}else if(Mathf.RoundToInt(CrossPlatformInputManager.GetAxis("Altitude")) < 0 && canAttack){
 						animator.SetTrigger("Downswing");
 						canAttack = false;
 

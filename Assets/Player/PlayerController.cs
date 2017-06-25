@@ -569,6 +569,7 @@ public class PlayerController: MonoBehaviour {
 
 	}
 	void ShootBomb(){
+		print ("called.");
 		GameObject shot = Instantiate(bomb, transform.forward, Quaternion.identity) as GameObject;	
 		shot.GetComponent<Projectile>().SetShooter(this.gameObject);
 		canBomb = false;
