@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour {
 	public GameObject enemy;
@@ -24,6 +25,9 @@ public class GameManager : MonoBehaviour {
 			}
 		}
 	
+	}
+
+	public void SceneChange(){
 	}
 
 	public void Pause(){

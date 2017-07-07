@@ -72,6 +72,7 @@ public class Enemy : LockableTarget {
 		while (active && Vector3.Distance( transform.position, target.transform.position) > meleeLimit) {
 			if (Vector3.Distance (transform.position, target.transform.position) < detectionRange) {//if not yet approached
 				transform.position = Vector3.Lerp (transform.position, target.transform.position, smoothing * Time.deltaTime);
+				transform.LookAt (target.transform.position);
 				anim.ResetTrigger ("Melee Attack");
 				if (Random.value < probability) {
 					Shoot ();

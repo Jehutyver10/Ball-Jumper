@@ -20,6 +20,7 @@ public class EnemyMeleeAttack : StateMachineBehaviour {
 			weapon.damage = weapon.burstDamage;
 		}
 
+
 	}
 
 	// OnStateUpdate is called before OnStateUpdate is called on any state inside this state machine
@@ -32,6 +33,9 @@ public class EnemyMeleeAttack : StateMachineBehaviour {
 			///animator.GetComponent<CharacterController>().Move(animator.transform.forward * Time.deltaTime * animator.GetComponent<Enemy>().speed);
 			}
 		}
+	
+		animator.transform.LookAt (animator.GetComponent<Enemy> ().target.transform.position); //look at the enemy at the start of each attack
+
 	}
 
 	 //OnStateExit is called before OnStateExit is called on any state inside this state machine
