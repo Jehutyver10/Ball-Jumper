@@ -34,10 +34,12 @@ public class CameraFollow : MonoBehaviour {
 		float angle = Mathf.LerpAngle(currentAngle, desiredAngle, Time.fixedTime * damping);
 		Quaternion rotation = Quaternion.Euler(0, angle, 0);
 		transform.position = Vector3.SmoothDamp(transform.position, player.pseudo.transform.position - (rotation * offset), ref velocity, smoothTime);
+
 		if(player.target){
 			SlowLookAt(player.target.transform);
+
 		}else{
-			SlowLookAt(player.pseudo.transform);
+			SlowLookAt (player.pseudo.transform);
 		}
 //		Quaternion fixedRotation =  Quaternion.Euler(transform.eulerAngles.x + camCorrection, transform.eulerAngles.y, transform.eulerAngles.z);
 //		transform.rotation = fixedRotation;

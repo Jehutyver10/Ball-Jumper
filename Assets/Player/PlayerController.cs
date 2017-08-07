@@ -94,6 +94,11 @@ public class PlayerController: MonoBehaviour {
 				transform.LookAt(new Vector3(target.transform.position.x, transform.position.y, target.transform.position.z));
 			}
 		}else{
+			if (Input.GetAxis ("Right Horizontal") == 0) {
+				AdjustPseudo ();
+
+			}
+			//			pseudo.transform.rotation = Quaternion.Slerp (pseudo.transform.rotation, transform.rotation, .2f);
 			if(isLocked){
 				//AdjustPseudo();
 			}
