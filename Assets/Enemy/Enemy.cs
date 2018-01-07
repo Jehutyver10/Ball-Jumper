@@ -1,14 +1,17 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
+using System.Linq;
 using System.Collections;
 [RequireComponent (typeof (Health))]
 public class Enemy : LockableTarget {
 	private float probability;
 
-	public bool canBeHomedInOn, active = false, alive = false;
+	public bool canBeHomedInOn, active = false, alive = false, playerDashed = false;
 	public float shotsPerSecond, meleeLimit, detectionRange, speed, smoothing = 1; 
 	public GameObject laser;
 	public EnemyWeapon weapon;
 	public PseudoEnemy pseudo;
+	public List<string> PossiblePursuingCommands;
 
 	Animator anim;
 	Health health;
@@ -19,6 +22,7 @@ public class Enemy : LockableTarget {
 	// Use this for initialization
 
 	void Awake(){
+		PossiblePursuingCommands = new List<string> () { "Dash", "Strafe", "Attack" };
 		SetTarget();
 	}
 	void Start () {
@@ -69,7 +73,7 @@ public class Enemy : LockableTarget {
 	}
 
 	IEnumerator Pursue () {//once detected);
-		while (active && Vector3.Distance( transform.position, target.transform.position) > meleeLimit) {
+		while (active && Vector3.Distance( transform.position, target.transform.position) > meleeLimit) {//if outside the melee limit but activated
 			if (Vector3.Distance (transform.position, target.transform.position) < detectionRange) {//if not yet approached
 				transform.position = Vector3.Lerp (transform.position, target.transform.position, smoothing * Time.deltaTime);
 				transform.LookAt (target.transform.position);
