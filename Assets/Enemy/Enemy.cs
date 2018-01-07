@@ -6,13 +6,15 @@ using System.Collections;
 public class Enemy : LockableTarget {
 	private float probability;
 
-	public bool canBeHomedInOn, active = false, alive = false, playerDashed = false;
-	public float shotsPerSecond, meleeLimit, detectionRange, speed, smoothing = 1; 
+	public bool canBeHomedInOn, active = false, alive = false, playerDashed = false, stunned = false;
+	public float shotsPerSecond, meleeLimit, detectionRange, shotSpeed, currentSpeed = 1, actionPeriod; 
 	public GameObject laser;
 	public EnemyWeapon weapon;
 	public PseudoEnemy pseudo;
 	public List<string> PossiblePursuingCommands;
-
+	bool nextActionDecided = false;
+	public enum State {Idle, Pursuing, Stunned, Blocking, Attacking, OTHER};
+	public State currentState = State.Idle;
 	Animator anim;
 	Health health;
 
@@ -22,7 +24,7 @@ public class Enemy : LockableTarget {
 	// Use this for initialization
 
 	void Awake(){
-		PossiblePursuingCommands = new List<string> () { "Dash", "Strafe", "Attack" };
+		PossiblePursuingCommands = new List<string> () { "Dash", "Strafe", "MeleeAttack"};
 		SetTarget();
 	}
 	void Start () {
@@ -30,15 +32,18 @@ public class Enemy : LockableTarget {
 		health = GetComponent<Health>();
 		weapon = GetComponentInChildren<EnemyWeapon>();
 		pseudo = GetComponentInChildren<PseudoEnemy>();
-		StartCoroutine ("Idle");
+		//StartCoroutine ("Idle");
 	}
 
 	// Update is called once per frame
 	void Update(){
 		probability = Time.deltaTime * shotsPerSecond;
 		if(alive){
+			print ("check 1");
 
 			transform.LookAt(target.GetComponent<PlayerController>().pseudo.transform);
+			DetermineState ();
+			ActOnState ();
 		
 //			if(active){
 //				if(Vector3.Distance(target.transform.position, transform.position) > meleeLimit){ //check if outside melee limit
@@ -61,43 +66,73 @@ public class Enemy : LockableTarget {
 		}
 	}
 
-	IEnumerator Idle () { //business as usual until the target appears within range
-		while(Vector3.Distance(transform.position, target.transform.position) > detectionRange)
-		{
-			active = false;
-			//TODO put some patrol code here or something? 
-			yield return null;
-		}
-		active = true;
-		StartCoroutine ("Pursue");
-	}
-
-	IEnumerator Pursue () {//once detected);
-		while (active && Vector3.Distance( transform.position, target.transform.position) > meleeLimit) {//if outside the melee limit but activated
-			if (Vector3.Distance (transform.position, target.transform.position) < detectionRange) {//if not yet approached
-				transform.position = Vector3.Lerp (transform.position, target.transform.position, smoothing * Time.deltaTime);
-				transform.LookAt (target.transform.position);
-				anim.ResetTrigger ("Melee Attack");
-				if (Random.value < probability) {
-					Shoot ();
+	void DetermineState(){
+		if (active) {
+			if (stunned) {
+				currentState = State.Stunned;
+			} else {
+				print ("check 2");
+				if (!TargetDetected ()) {
+					currentState = State.Idle;
+				} else {//while target is detected
+					if (WithinMeleeRange ()) {//during pursuit
+						currentState = State.Attacking;
+					} else {
+						currentState = State.Pursuing;
+					}
 				}
-				yield return null;
-			} else { 
-				StartCoroutine ("Idle");
-				yield break;
 			}
+		} else {
+			currentState = State.OTHER;
 		}
-		StartCoroutine ("MeleeAttack");
 	}
 
-	IEnumerator MeleeAttack(){
-		while (active && Vector3.Distance (transform.position, target.transform.position) < meleeLimit) {
+	void ActOnState(){
+		switch (currentState){
+		case State.Pursuing:
+			transform.position = Vector3.Lerp (transform.position, target.transform.position, currentSpeed * Time.deltaTime);
+			if (!nextActionDecided) {
+				Invoke ("DecideNextAction", actionPeriod);
+				nextActionDecided = true;
+			}
+			anim.ResetTrigger ("Melee Attack");
+			break;
+		case State.Attacking:
+			CancelInvoke ();
 			anim.SetTrigger ("Melee Attack");
-			yield return null;
+			break;
+		default:
+			break;
 		}
-		StartCoroutine ("Pursue");
-
 	}
+	void DecideNextAction(){
+		nextActionDecided = false;
+		print(PossiblePursuingCommands [Random.Range (0, 3)]);//select a random command 
+	}
+
+
+	void Reset(){
+		stunned = false;
+	}
+
+
+	bool TargetDetected(){
+		if (Vector3.Distance (transform.position, target.transform.position) > detectionRange) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+	bool WithinMeleeRange(){
+		if (Vector3.Distance (transform.position, target.transform.position) > meleeLimit) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+
+
+
 
 	void SetTarget(){
 		target = GameObject.FindObjectOfType<PlayerController>().gameObject;
@@ -124,5 +159,40 @@ public class Enemy : LockableTarget {
 		shot.GetComponent<Rigidbody>().AddForce(transform.forward * shot.GetComponent<Projectile>().speed);
 
 	}
+
+	//
+	//	IEnumerator Idle () { //business as usual until the target appears within range
+	//		while(Vector3.Distance(transform.position, target.transform.position) > detectionRange)
+	//		{
+	//			active = false;
+	//			//TODO put some patrol code here or something? 
+	//			yield return null;
+	//		}
+	//		active = true;
+	//		StartCoroutine ("Pursue");
+	//	}
+	//
+	//	IEnumerator Pursue () {//once detected);
+	//		while (active && !WithinMeleeRange()) {//if outside the melee limit but activated
+	//			if (Vector3.Distance (transform.position, target.transform.position) < detectionRange) {//if not yet approached
+	//
+	////				if (Random.value < probability) {
+	////					Shoot ();
+	////				}
+	//				yield return null;
+	//			} else { 
+	//				StartCoroutine ("Idle");
+	//				yield break;
+	//			}
+	//		}
+	//		StartCoroutine ("MeleeAttack");
+	//	}
+	//
+	//	IEnumerator MeleeAttack(){
+	//		while (active && Vector3.Distance (transform.position, target.transform.position) < meleeLimit) {
+	//			yield return null;
+	//		}
+	//		StartCoroutine ("Pursue");
+	//	}
 
 }
