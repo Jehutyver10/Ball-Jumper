@@ -3,7 +3,7 @@ using System.Collections;
 
 public class Projectile : MonoBehaviour {
 	public float speed = 1000, damage = 1;	// Use this for initialization
-	public bool isChargeAttack, isColliding;
+	public bool isChargeAttack, isColliding, stunning = true;
 
 	public GameObject shooter;
 	void Start () {
@@ -24,6 +24,11 @@ public class Projectile : MonoBehaviour {
 		}
 		isColliding = true;
 		if(col.GetComponentInParent<Health>()){
+			if(col.GetComponentInParent<Enemy>()){
+				if (stunning) {
+					col.GetComponentInParent<Enemy> ().stunned = true;
+				}
+			}
 			col.GetComponentInParent<Health>().TakeDamage(damage);
 		}
 		Destroy(this.gameObject);

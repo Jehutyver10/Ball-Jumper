@@ -28,7 +28,7 @@ public class EnemyMeleeAttack : StateMachineBehaviour {
 		if(firstHit){
 			if(Vector3.Distance(animator.transform.position, animator.GetComponent<Enemy>().target.transform.position) > MeleeLimit){
 	
-				animator.transform.position = Vector3.MoveTowards(animator.transform.position, animator.GetComponent<Enemy>().target.transform.position, animator.GetComponent<Enemy>().speed * Time.deltaTime);
+				animator.transform.position = Vector3.MoveTowards(animator.transform.position, animator.GetComponent<Enemy>().target.transform.position, animator.GetComponent<Enemy>().shotSpeed * Time.deltaTime);
 
 			///animator.GetComponent<CharacterController>().Move(animator.transform.forward * Time.deltaTime * animator.GetComponent<Enemy>().speed);
 			}
