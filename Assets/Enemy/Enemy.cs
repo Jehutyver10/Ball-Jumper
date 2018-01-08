@@ -41,7 +41,10 @@ public class Enemy : LockableTarget {
 		if(alive){
 			print ("check 1");
 
-			transform.LookAt(target.GetComponent<PlayerController>().pseudo.transform);
+			transform.LookAt(new Vector3(0,
+				target.GetComponent<PlayerController>().pseudo.transform.position.y, 
+				target.GetComponent<PlayerController>().pseudo.transform.position.z));
+				
 			DetermineState ();
 			ActOnState ();
 		
@@ -95,7 +98,6 @@ public class Enemy : LockableTarget {
 				Invoke ("DecideNextAction", actionPeriod);
 				nextActionDecided = true;
 			}
-			anim.ResetTrigger ("Melee Attack");
 			break;
 		case State.Attacking:
 			CancelInvoke ();
@@ -107,9 +109,20 @@ public class Enemy : LockableTarget {
 	}
 	void DecideNextAction(){
 		nextActionDecided = false;
-		print(PossiblePursuingCommands [Random.Range (0, 3)]);//select a random command 
+		Invoke(PossiblePursuingCommands [Random.Range (0, 3)], 0);//select a random command 
 	}
 
+	void Dash(){
+		print ("dashing");
+	}
+
+	void Strafe(){
+		print ("Strafing");
+	}
+
+	void MeleeAttack(){
+		print ("Melee Attacking");
+	}
 
 	void Reset(){
 		stunned = false;
