@@ -7,25 +7,27 @@ public class Enemy : LockableTarget {
 	private float probability;
 
 	public bool canBeHomedInOn, active = false, alive = false, playerDashed = false, stunned = false;
-	public float shotsPerSecond, meleeLimit, detectionRange, shotSpeed, currentSpeed = 1, actionPeriod; 
+	public float shotsPerSecond, meleeLimit, detectionRange, shotSpeed, currentSpeed = 1, dashSpeed, rushSpeed, actionPeriod; 
 	public GameObject laser;
 	public EnemyWeapon weapon;
 	public PseudoEnemy pseudo;
-	public List<string> PossiblePursuingCommands;
+	public List<string> PossibleMovingCommands;
 	bool nextActionDecided = false;
-	public enum State {Idle, Pursuing, Stunned, Blocking, Attacking, OTHER};
+	public enum State {Idle, Stunned, Move, Rush, Dash, Strafe, Attack, Block};
 	public State currentState = State.Idle;
 	Animator anim;
 	Health health;
+	CharacterController cc;
 
-
+	private bool readyForNextState = true, rushing = false;
 
 	public GameObject target;
 	// Use this for initialization
 
 	void Awake(){
-		PossiblePursuingCommands = new List<string> () { "Dash", "Strafe", "MeleeAttack"};
+		PossibleMovingCommands = new List<string> () { "Dash", "Strafe", "Attack"};
 		SetTarget();
+		cc = GetComponent<CharacterController> ();
 	}
 	void Start () {
 		anim = GetComponent<Animator>();
@@ -38,15 +40,13 @@ public class Enemy : LockableTarget {
 	// Update is called once per frame
 	void Update(){
 		probability = Time.deltaTime * shotsPerSecond;
-		if(alive){
+		if (alive) {
 			print ("check 1");
 
-			transform.LookAt(new Vector3(0,
-				target.GetComponent<PlayerController>().pseudo.transform.position.y, 
-				target.GetComponent<PlayerController>().pseudo.transform.position.z));
-				
-			DetermineState ();
-			ActOnState ();
+			transform.LookAt (new Vector3 (target.GetComponent<PlayerController>().pseudo.transform.position.x,
+				target.GetComponent<PlayerController> ().pseudo.transform.position.y, 
+				target.GetComponent<PlayerController> ().pseudo.transform.position.z));
+			
 		
 //			if(active){
 //				if(Vector3.Distance(target.transform.position, transform.position) > meleeLimit){ //check if outside melee limit
@@ -58,10 +58,21 @@ public class Enemy : LockableTarget {
 //					anim.SetTrigger("Melee Attack");
 //				}
 //			}
-
+		
+			if (WithinMidrange ()) {
+				if (WithinMeleeRange()) {
+					if (readyForNextState) {
+						currentState = (State)System.Enum.Parse (typeof(State), PossibleMovingCommands [Random.Range (0, 3)]);
+						readyForNextState = false;
+					}
+				} else {
+					currentState = State.Move;
+				}
+			} else {
+				currentState = State.Rush;
+			}
 
 		}
-
 		//TODO remove this in final version; it's only for testing
 		if(Input.GetButtonDown("Activate Enemies")){
 			alive = !alive;
@@ -69,67 +80,74 @@ public class Enemy : LockableTarget {
 		}
 	}
 
-	void DetermineState(){
-		if (active) {
-			if (stunned) {
-				currentState = State.Stunned;
-			} else {
-				print ("check 2");
-				if (!TargetDetected ()) {
-					currentState = State.Idle;
-				} else {//while target is detected
-					if (WithinMeleeRange ()) {//during pursuit
-						currentState = State.Attacking;
-					} else {
-						currentState = State.Pursuing;
-					}
-				}
+	void FixedUpdate(){
+		if (alive) {
+
+			if (!rushing) {
+				ActOnState ();
 			}
-		} else {
-			currentState = State.OTHER;
 		}
+
 	}
 
+	void Move(){
+		cc.Move (transform.forward * currentSpeed);
+		print ("Moving");
+		readyForNextState = true;
+
+	}
+
+	IEnumerator Rush(Vector3 destination){
+		rushing = true;
+		while (Vector3.Distance (transform.position, destination) > 1) {
+			print ("rushing");
+			cc.Move ((destination - transform.position).normalized * rushSpeed);
+			yield return null;
+		}
+		rushing = false;
+		Reset ();
+	}
+	void Reset(){
+		currentState = State.Idle;
+		readyForNextState = true;
+
+	}
 	void ActOnState(){
-		switch (currentState){
-		case State.Pursuing:
-			transform.position = Vector3.Lerp (transform.position, target.transform.position, currentSpeed * Time.deltaTime);
-			if (!nextActionDecided) {
-				Invoke ("DecideNextAction", actionPeriod);
-				nextActionDecided = true;
+		switch(currentState){
+		case State.Stunned:
+			print ("stunned");
+			break;
+		case State.Move:
+			Move ();
+
+			break;
+		case State.Rush:
+			if (!rushing) {
+				StartCoroutine (Rush (target.GetComponent<PlayerController> ().pseudo.transform.position));
 			}
 			break;
-		case State.Attacking:
-			CancelInvoke ();
-			anim.SetTrigger ("Melee Attack");
+		case State.Dash:
+			print ("dashing");
+			break;
+		case State.Strafe:
+			print ("strafing");
+			break;
+		case State.Attack:
+			print ("attacking");
+			break;
+		case State.Block:
+			print ("blocking");
 			break;
 		default:
+			print ("idle");
 			break;
+
 		}
 	}
-	void DecideNextAction(){
-		nextActionDecided = false;
-		Invoke(PossiblePursuingCommands [Random.Range (0, 3)], 0);//select a random command 
-	}
-
-	void Dash(){
-		print ("dashing");
-	}
-
-	void Strafe(){
-		print ("Strafing");
-	}
-
-	void MeleeAttack(){
-		print ("Melee Attacking");
-	}
-
-	void Reset(){
-		stunned = false;
-	}
 
 
-	bool TargetDetected(){
+
+	bool WithinMidrange(){
 		if (Vector3.Distance (transform.position, target.transform.position) > detectionRange) {
 			return false;
 		} else {
