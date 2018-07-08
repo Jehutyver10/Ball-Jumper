@@ -20,21 +20,23 @@ public class EnemyMeleeAttack : StateMachineBehaviour {
 			weapon.damage = weapon.burstDamage;
 		}
 
-
+		animator.transform.LookAt (animator.GetComponent<Enemy> ().target.transform.position); //look at the enemy at the start of each attack
+		if (isCombo) {
+			weapon.owner.targetPosition = weapon.owner.target.transform.position;
+		}
 	}
 
 	// OnStateUpdate is called before OnStateUpdate is called on any state inside this state machine
 	override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
-		if(firstHit){
-			if(Vector3.Distance(animator.transform.position, animator.GetComponent<Enemy>().target.transform.position) > MeleeLimit){
+//		if(firstHit){
+//			if(Vector3.Distance(animator.transform.position, animator.GetComponent<Enemy>().target.transform.position) > MeleeLimit){
+//	
+//				animator.transform.position = Vector3.MoveTowards(animator.transform.position, animator.GetComponent<Enemy>().target.transform.position, animator.GetComponent<Enemy>().shotSpeed * Time.deltaTime);
+//
+//			///animator.GetComponent<CharacterController>().Move(animator.transform.forward * Time.deltaTime * animator.GetComponent<Enemy>().speed);
+//			}
+//		}
 	
-				animator.transform.position = Vector3.MoveTowards(animator.transform.position, animator.GetComponent<Enemy>().target.transform.position, animator.GetComponent<Enemy>().shotSpeed * Time.deltaTime);
-
-			///animator.GetComponent<CharacterController>().Move(animator.transform.forward * Time.deltaTime * animator.GetComponent<Enemy>().speed);
-			}
-		}
-	
-		animator.transform.LookAt (animator.GetComponent<Enemy> ().target.transform.position); //look at the enemy at the start of each attack
 
 	}
 

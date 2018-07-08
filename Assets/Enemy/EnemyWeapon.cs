@@ -5,9 +5,11 @@ public class EnemyWeapon : MonoBehaviour {
 	public bool active = false, knockback = false, hit = false;
 	public float damage = 0, comboDamage = 0, burstDamage = 0, force = 0;
 	public int noDamageSwingCount;
+	public Enemy owner;
 	// Use this for initialization
 	void Start () {
 		noDamageSwingCount = 0;
+		owner = GetComponentInParent<Enemy> ();
 		//find all the weapons that the enemy has
 //		for(int i = 0; i < transform.root.GetComponentsInChildren<EnemyWeapon>().Length; i++){
 //			transform.root.GetComponentsInChildren<EnemyWeapon>()[i].name = transform.root.GetComponentsInChildren<EnemyWeapon>()[i].name + " " + i.ToString(); 

@@ -75,6 +75,7 @@ public class PlayerController: MonoBehaviour {
 		if(!stunned){
 			charCon.Move(movement * speed * Time.deltaTime);
 		}
+
 		camFollow.AdjustDamping();
 
 		//give the camera some discrepancy
@@ -112,7 +113,9 @@ public class PlayerController: MonoBehaviour {
 		if(CanMove()){//can move while not charging or boosting
 			GetMovement();
 		}
-		Charge();
+		if (!shielding) {
+			Charge ();
+		}
 		LockOn();
 		Attack();
 		PauseSubweapon();
@@ -407,8 +410,11 @@ public class PlayerController: MonoBehaviour {
 				canAttack = false;
 				UseSubweapon();
 			}else if(CrossPlatformInputManager.GetButton("Shield")){//shielding
-				canAttack = false;
-				Shield();
+
+				if (!isBoosted) {
+					canAttack = false;
+					Shield ();
+				}
 			}
 		} else{
 			if(shielding){
@@ -418,7 +424,7 @@ public class PlayerController: MonoBehaviour {
 					anim.SetBool("Shielding", false);
 					anim.SetBool("Dashing", false);
 					canAttack = true;
-					normalSpeed = normalSpeed * 2;
+					speed = normalSpeed;
 
 				}
 			}
@@ -428,7 +434,7 @@ public class PlayerController: MonoBehaviour {
 	void Shield(){
 		shielding = true;
 		anim.SetBool("Shielding", true);
-		normalSpeed = normalSpeed/2;
+		speed = normalSpeed/2;
 		isBoosted = false;
 	}	
 

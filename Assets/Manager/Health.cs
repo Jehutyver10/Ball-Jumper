@@ -23,6 +23,10 @@ public class Health : MonoBehaviour {
 		}
 		if(GetComponent<Animator>()){
 			GetComponent<Animator>().SetTrigger("Take Damage");
+
+			if (GetComponent<PlayerController> ()) {
+				GetComponent<PlayerController> ().anim.SetBool ("Shielding", false);
+			}
 		}
 	}
 

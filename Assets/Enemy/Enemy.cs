@@ -7,19 +7,22 @@ public class Enemy : LockableTarget {
 	private float probability;
 
 	public bool canBeHomedInOn, active = false, alive = false, playerDashed = false, stunned = false;
-	public float shotsPerSecond, meleeLimit, detectionRange, shotSpeed, currentSpeed = 1, dashSpeed, rushSpeed, actionPeriod; 
+	public float shotsPerSecond, meleeLimit, detectionRange, shotSpeed, normalSpeed = 1, dashSpeed, rushSpeed, actionPeriod, minDistance; 
 	public GameObject laser;
 	public EnemyWeapon weapon;
 	public PseudoEnemy pseudo;
 	public List<string> PossibleMovingCommands;
 	bool nextActionDecided = false;
 	public enum State {Idle, Stunned, Move, Rush, Dash, Strafe, Attack, Block};
+	public enum AttackType{Combo, Dash, Burst};
+	AttackType attackType = AttackType.Combo;
 	public State currentState = State.Idle;
 	Animator anim;
 	Health health;
 	CharacterController cc;
 
-	private bool readyForNextState = true, rushing = false;
+	private bool readyForNextState = true, CR_active = false;
+	public Vector3 targetPosition;
 
 	public GameObject target;
 	// Use this for initialization
@@ -61,9 +64,11 @@ public class Enemy : LockableTarget {
 		
 			if (WithinMidrange ()) {
 				if (WithinMeleeRange()) {
+					
 					if (readyForNextState) {
 						currentState = (State)System.Enum.Parse (typeof(State), PossibleMovingCommands [Random.Range (0, 3)]);
 						readyForNextState = false;
+						print ("ready for next state");
 					}
 				} else {
 					currentState = State.Move;
@@ -83,57 +88,141 @@ public class Enemy : LockableTarget {
 	void FixedUpdate(){
 		if (alive) {
 
-			if (!rushing) {
+			if (!CR_active) {
 				ActOnState ();
 			}
 		}
 
 	}
 
-	void Move(){
-		cc.Move (transform.forward * currentSpeed);
-		print ("Moving");
-		readyForNextState = true;
+//	void Move(){
+//		cc.Move (transform.forward * currentSpeed);
+//		print ("Moving");
+//		readyForNextState = true;
+//
+//	}
 
-	}
-
-	IEnumerator Rush(Vector3 destination){
-		rushing = true;
-		while (Vector3.Distance (transform.position, destination) > 1) {
-			print ("rushing");
-			cc.Move ((destination - transform.position).normalized * rushSpeed);
-			yield return null;
+	IEnumerator Move(){
+		CR_active = true;
+		float timer = 0;
+		float moveTime = 3;
+		while (timer <moveTime) {
+			if (Vector3.Distance (transform.position, target.transform.position) > minDistance) {
+				cc.Move (transform.forward * normalSpeed);
+			}
+			print ("moving");
+			timer += Time.deltaTime;
+			yield return new WaitForFixedUpdate();
 		}
-		rushing = false;
+		CR_active = false;
 		Reset ();
 	}
-	void Reset(){
+	IEnumerator Rush(Vector3 destination){
+		CR_active = true;
+		while (Vector3.Distance (transform.position, destination) > 1) {
+			print ("rushing");
+			if (Vector3.Distance (transform.position, target.transform.position) > minDistance) {
+				cc.Move ((destination - transform.position).normalized * rushSpeed);
+			} else {
+				break;
+			}
+			yield return new WaitForFixedUpdate();
+		}
+		CR_active = false;
+		Reset ();
+	}
+
+	IEnumerator Dash(){
+		CR_active = true;
+		float timer = 0;
+		float dashTime = 1;
+		while (timer < dashTime) {
+			if (Vector3.Distance (transform.position, target.transform.position) > minDistance) {
+				cc.Move (transform.forward * dashSpeed);
+			}
+			print ("dashing");
+			timer += Time.deltaTime;
+			yield return new WaitForFixedUpdate();
+		}
+		CR_active = false;
+		Reset ();
+	}
+
+	IEnumerator Strafe(){
+		CR_active = true;
+		float timer = 0;
+		float strafeTime = 2;
+		while (timer < strafeTime) {
+			cc.Move (transform.right * normalSpeed/4);
+			print ("strafing");
+			timer += Time.deltaTime;
+			yield return new WaitForFixedUpdate ();
+		}
+		timer = 0;
+		while (timer < strafeTime) {
+			cc.Move (transform.right * -1 * normalSpeed/4);
+			print ("strafing");
+			timer += Time.deltaTime;
+			yield return new WaitForFixedUpdate ();
+		}
+		CR_active = false;
+		Reset ();
+	}
+
+	IEnumerator Attack(){
+		CR_active = true;
+		float attackDistance = 1;
+		int swings = 0;
+		while (swings < 4) {
+			print ("attacking");
+			if (Vector3.Distance (targetPosition, transform.position) > attackDistance) {
+				cc.Move ((targetPosition - transform.position).normalized * normalSpeed); 
+			}
+			anim.SetTrigger ("Melee Attack");
+			swings = weapon.noDamageSwingCount;
+			yield return null;
+		}
+		CR_active = false;
+		Reset ();
+
+	}
+	public void Reset(){
+		StopAllCoroutines ();
 		currentState = State.Idle;
 		readyForNextState = true;
-
+		anim.ResetTrigger ("Melee Attack");
+		CR_active = false;
 	}
 	void ActOnState(){
 		switch(currentState){
 		case State.Stunned:
+			CR_active = true;
 			print ("stunned");
 			break;
 		case State.Move:
-			Move ();
+			StartCoroutine (Move());
 
 			break;
 		case State.Rush:
-			if (!rushing) {
+			if (!CR_active) {
 				StartCoroutine (Rush (target.GetComponent<PlayerController> ().pseudo.transform.position));
 			}
 			break;
 		case State.Dash:
-			print ("dashing");
+			if (!CR_active) {
+				StartCoroutine (Dash ());
+			}
 			break;
 		case State.Strafe:
-			print ("strafing");
+			if (!CR_active) {
+				StartCoroutine (Strafe());
+			}
+
 			break;
 		case State.Attack:
-			print ("attacking");
+			if (!CR_active) {
+				StartCoroutine (Attack ());
+			}
 			break;
 		case State.Block:
 			print ("blocking");
@@ -164,6 +253,9 @@ public class Enemy : LockableTarget {
 
 
 
+	public void Hit(bool hit){
+		
+	}
 
 	void SetTarget(){
 		target = GameObject.FindObjectOfType<PlayerController>().gameObject;
