@@ -64,23 +64,29 @@ public class PlayerController: MonoBehaviour {
 //		newY = 0;
 	}
 	void Update(){
-		if(inControl){
-			if(!stunned){
-				ControlPlayer();
+		//if(inControl){
+		//	if(!stunned){
+		//		ControlPlayer();
 
-			}
-		}
+		//	}
+		//}
 		Pause();
-        currentButton = GetCurrentButton();
-        currentState = UpdateState(currentState, currentButton);
-		HandleAnimationLayer();
-	}
-	void FixedUpdate () {
-		if(!stunned){
-			charCon.Move(movement * speed * Time.deltaTime);
-		}
+        LockOn();
 
-		camFollow.AdjustDamping();
+        HandleAnimationLayer();
+	}
+
+  
+	void FixedUpdate () {
+        ///	if(!stunned){
+        ///	charCon.Move(movement * speed * Time.deltaTime);
+        ///	}
+        currentButton = GetCurrentButton();
+
+        currentState = UpdateState(currentState, currentButton);
+
+
+        camFollow.AdjustDamping();
 
 		//give the camera some discrepancy
 		pseudo.transform.position =  Vector3.Lerp(pseudo.transform.position, transform.position, Time.deltaTime * pseudoDiscrepancySpeed);
@@ -112,7 +118,6 @@ public class PlayerController: MonoBehaviour {
 
 	}
 
-
     PlayerState UpdateState(PlayerState state, PlayerButton button)
     {
         if (state != PlayerState.Stunned)
@@ -121,14 +126,17 @@ public class PlayerController: MonoBehaviour {
             {
                 if (button == PlayerButton.Charge)
                 {
+                    movement = GetMovement();
+                    charCon.Move(movement * boostSpeed * Time.deltaTime);
                     return PlayerState.Dashing;
                 
-                }
+                } 
             }
             if (state == PlayerState.Idle)
             {
                 if (button == PlayerButton.Charge)
                 {
+                    Charge();
                     return PlayerState.Charging;
                 }
             }
@@ -137,15 +145,21 @@ public class PlayerController: MonoBehaviour {
 
                 if (button == PlayerButton.Shield)
                 {
+                    movement = GetMovement();
+                    charCon.Move(movement * speed / 2 * Time.deltaTime);
                     return PlayerState.Shielding;
                 }
                 else if (button == PlayerButton.Attack || button == PlayerButton.Sub)
                 {
+                    NormalAttack();
                     return PlayerState.Attacking;
 
                 }
                 else if (button == PlayerButton.Move)
                 {
+                    movement = GetMovement();
+                    charCon.Move(movement * speed * Time.deltaTime);
+
                     return PlayerState.Moving;
                 }
                 else
@@ -159,6 +173,7 @@ public class PlayerController: MonoBehaviour {
             {
                 if (CrossPlatformInputManager.GetButtonDown("Attack"))
                 {
+                    ChargeAttack();
                     return PlayerState.Attacking;
                 }
                 else if (button == PlayerButton.NONE)
@@ -174,15 +189,25 @@ public class PlayerController: MonoBehaviour {
             {
                 if (CrossPlatformInputManager.GetButtonDown("Attack"))
                 {
+                    DashAttack();
                     return PlayerState.Attacking;
                 }
 
                 else if (button == PlayerButton.NONE)
                 {
+                    
                     return PlayerState.Idle;
+                }
+                else if(button == PlayerButton.Move)
+                {
+                    movement = GetMovement();
+                    return PlayerState.Dashing;
                 }
                 else
                 {
+                    movement = GetMovement();
+                    charCon.Move(movement * boostSpeed * Time.deltaTime);
+
                     return PlayerState.Dashing;
                 }
             }
@@ -195,6 +220,9 @@ public class PlayerController: MonoBehaviour {
                 }
                 else
                 {
+                    Shield();
+                    movement = GetMovement();
+                    charCon.Move(movement * speed / 2 * Time.deltaTime);
                     return PlayerState.Shielding;
                 }
             }
@@ -217,7 +245,7 @@ public class PlayerController: MonoBehaviour {
             return PlayerButton.Charge;
 
         }
-        else if (!(CrossPlatformInputManager.GetAxis("Horizontal") == 0 && CrossPlatformInputManager.GetAxis("Vertical") == 0 && CrossPlatformInputManager.GetAxis("Altitude") == 0))
+        else if (GetMovement().magnitude > 0)
         {
             return PlayerButton.Move;
 
@@ -243,15 +271,79 @@ public class PlayerController: MonoBehaviour {
             return PlayerButton.NONE;
         }
     }
-	void ControlPlayer(){
+
+    /// <summary>
+    /// Returns true if target (tpos) is in melee range, returns false if not
+    /// </summary>
+    bool InMeleeRange(Vector3 pPos, Vector3 tPos, float range)
+    {
+        if (Vector3.Distance(pPos, tPos) > range)
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+    void NormalAttack()
+    {
+        if (target)
+        {
+            if(InMeleeRange(transform.position, target.transform.position, meleeRange))
+            {
+                anim.SetTrigger("Begin Melee Combo");
+                weapon.damage = weapon.comboDamage;
+                return;
+            }
+        }
+        anim.SetTrigger("Shoot Bullet");
+    }
+
+    void DashAttack()
+    {
+        if (target)
+        {
+            if (InMeleeRange(transform.position, target.transform.position, meleeRange))
+            {
+                anim.SetTrigger("Lunge");
+                weapon.damage = weapon.dashDamage;
+                return;
+            }
+
+        }
+        anim.SetBool("Locking Blast", true);
+
+
+
+    }
+
+    void ChargeAttack()
+    {
+        if (target)
+        {
+            if (InMeleeRange(transform.position, target.transform.position, meleeRange))
+            {
+
+                anim.SetTrigger("Spin Slice");
+                weapon.damage = weapon.burstDamage;
+                return;
+            }
+        }
+        anim.SetTrigger("Shoot Bomb");
+
+
+    }
+
+
+    void ControlPlayer(){
 		if(CanMove()){//can move while not charging or boosting
-			GetMovement();
+            movement = GetMovement();
 		}
 		if (!shielding) {
 			Charge ();
 		}
-		LockOn();
-		Attack();
+		//Attack();
 		PauseSubweapon();
 	}
 
@@ -270,25 +362,35 @@ public class PlayerController: MonoBehaviour {
 	}
 
 
-	void GetMovement(){
+	Vector3 GetMovement(){
 		float moveY = 0;
-		if(CrossPlatformInputManager.GetButton("Altitude")){
+
+        if (CrossPlatformInputManager.GetButton("Altitude")){
+
 			if(penultimateAttack){
 				moveY = 0;
 			}else{
 				moveY = CrossPlatformInputManager.GetAxis("Altitude");
-			}
-		}
+
+            }
+        }
 		float moveX = CrossPlatformInputManager.GetAxis ("Horizontal");
 		float moveZ = CrossPlatformInputManager.GetAxis ("Vertical");
-		movement = new Vector3 (moveX, 0, moveZ);
+
+        Vector3 newMovement = new Vector3 (moveX, 0, moveZ);
 		anim.SetFloat("Velocity X", moveX);
 		anim.SetFloat("Velocity Z", moveZ);
+        print(moveZ);
 		//translate movement by the rotation along the y axis
-		movement = pseudo.transform.TransformDirection(movement);
-////		transform.rotation = Quaternion.Euler (0, newY, 0);
-		movement = new Vector3(movement.x, moveY, movement.z);
-		//TODO: fix altitude GLITCH
+		newMovement = pseudo.transform.TransformDirection(newMovement);
+        print(newMovement.magnitude);
+
+        ////		transform.rotation = Quaternion.Euler (0, newY, 0);
+        newMovement = new Vector3(newMovement.x, moveY, newMovement.z);
+        //TODO: fix altitude GLITCH
+        return newMovement;
+        
+
 
 
 //		Vector3 newMove = transform.position + movement * speed * Time.deltaTime;
@@ -575,7 +677,7 @@ public class PlayerController: MonoBehaviour {
 	void Shield(){
 		shielding = true;
 		anim.SetBool("Shielding", true);
-		speed = normalSpeed/2;
+		
 		isBoosted = false;
 	}	
 
@@ -659,13 +761,12 @@ public class PlayerController: MonoBehaviour {
 	void Shoot(){
 
 		if(!isBoosted && !charging){//stationary shot
-			anim.SetTrigger("Shoot Bullet");
 
 		} else if(charging && canBomb){
 			anim.SetTrigger("Shoot Bomb");
 		} else if(isBoosted){
-			anim.SetBool("Locking Blast", true);
-			canAttack = true;
+            anim.SetBool("Locking Blast", true);
+            canAttack = true;
 		}
 	}
 	public void LockBlast(){
