@@ -31,8 +31,11 @@ public class PlayerController: MonoBehaviour {
 	public float speed = 150, newLockLimit = 1, rotationSpeed =1, meleeRange = 1, minEnemyDistance, minEnemyAltitudeDistance, 
 	boostMultiplier, lockLimit = 2, throwStrength, pseudoDiscrepancySpeed;
 	public bool isBoosted, moving, canBomb, canAttack = true, shielding = false, makingBomb = false, stunned = false, penultimateAttack, isAttacking = false, isLastAttack = false;
-
-	void Awake(){
+    public enum PlayerState {Idle, Moving, Attacking, Dashing, Charging, Shielding, Stunned };
+    public enum PlayerButton { Attack, Charge, Shield, Sub, Move, NONE};
+    public PlayerState currentState;
+    public PlayerButton currentButton;
+    void Awake(){
 		pseudo = new GameObject("Pseudoplayer").AddComponent<PseudoPlayer>();
 	}
 	void Start (){
@@ -68,7 +71,8 @@ public class PlayerController: MonoBehaviour {
 			}
 		}
 		Pause();
-
+        currentButton = GetCurrentButton();
+        currentState = UpdateState(currentState, currentButton);
 		HandleAnimationLayer();
 	}
 	void FixedUpdate () {
@@ -109,6 +113,136 @@ public class PlayerController: MonoBehaviour {
 	}
 
 
+    PlayerState UpdateState(PlayerState state, PlayerButton button)
+    {
+        if (state != PlayerState.Stunned)
+        {
+            if (state == PlayerState.Moving)
+            {
+                if (button == PlayerButton.Charge)
+                {
+                    return PlayerState.Dashing;
+                
+                }
+            }
+            if (state == PlayerState.Idle)
+            {
+                if (button == PlayerButton.Charge)
+                {
+                    return PlayerState.Charging;
+                }
+            }
+            if (state == PlayerState.Idle || state == PlayerState.Moving)
+            {
+
+                if (button == PlayerButton.Shield)
+                {
+                    return PlayerState.Shielding;
+                }
+                else if (button == PlayerButton.Attack || button == PlayerButton.Sub)
+                {
+                    return PlayerState.Attacking;
+
+                }
+                else if (button == PlayerButton.Move)
+                {
+                    return PlayerState.Moving;
+                }
+                else
+                {
+                    return PlayerState.Idle;
+                }
+            }
+
+
+            else if (state == PlayerState.Charging)
+            {
+                if (CrossPlatformInputManager.GetButtonDown("Attack"))
+                {
+                    return PlayerState.Attacking;
+                }
+                else if (button == PlayerButton.NONE)
+                {
+                    return PlayerState.Idle;
+                }
+                else
+                {
+                    return PlayerState.Charging;
+                }
+            }
+            else if (state == PlayerState.Dashing)
+            {
+                if (CrossPlatformInputManager.GetButtonDown("Attack"))
+                {
+                    return PlayerState.Attacking;
+                }
+
+                else if (button == PlayerButton.NONE)
+                {
+                    return PlayerState.Idle;
+                }
+                else
+                {
+                    return PlayerState.Dashing;
+                }
+            }
+            else if (state == PlayerState.Shielding)
+            {
+                if (button == PlayerButton.NONE)
+                {
+                    return PlayerState.Idle;
+
+                }
+                else
+                {
+                    return PlayerState.Shielding;
+                }
+            }
+            else if (state == PlayerState.Attacking)
+            {
+                return PlayerState.Attacking;
+            }
+            return PlayerState.Idle;
+        }
+        else
+        {
+            return PlayerState.Stunned;
+        }
+    }
+
+    PlayerButton GetCurrentButton()
+    {
+        if (CrossPlatformInputManager.GetAxis("Boost") > 0)
+        {
+            return PlayerButton.Charge;
+
+        }
+        else if (!(CrossPlatformInputManager.GetAxis("Horizontal") == 0 && CrossPlatformInputManager.GetAxis("Vertical") == 0 && CrossPlatformInputManager.GetAxis("Altitude") == 0))
+        {
+            return PlayerButton.Move;
+
+        }
+
+        else if (CrossPlatformInputManager.GetButtonDown("Attack"))
+        { 
+
+            return PlayerButton.Attack;
+
+        }
+        else if (CrossPlatformInputManager.GetButtonDown("Subweapon"))
+        {
+            return PlayerButton.Sub;
+
+        }
+        else if (CrossPlatformInputManager.GetButton("Shield"))
+        {
+            return PlayerButton.Shield;
+        }
+        else
+        {
+            return PlayerButton.NONE;
+        }
+    }
 	void ControlPlayer(){
 		if(CanMove()){//can move while not charging or boosting
 			GetMovement();
@@ -412,6 +546,13 @@ public class PlayerController: MonoBehaviour {
 			}else if(CrossPlatformInputManager.GetButton("Shield")){//shielding
 
 				if (!isBoosted) {
+
+
+
+
+
+
+
 					canAttack = false;
 					Shield ();
 				}
@@ -540,7 +681,6 @@ public class PlayerController: MonoBehaviour {
 		else if(CrossPlatformInputManager.GetButtonUp("Attack")){
 			anim.SetBool("Locking Blast", false);
 			ShootBlast(Enemies);
-			print("called");
 
 		}
 	}
@@ -580,7 +720,8 @@ public class PlayerController: MonoBehaviour {
 
 	}
 	void ShootBomb(){
-		print ("called.");
+
+
 		GameObject shot = Instantiate(bomb, transform.forward, Quaternion.identity) as GameObject;	
 		shot.GetComponent<Projectile>().SetShooter(this.gameObject);
 		canBomb = false;
@@ -604,6 +745,5 @@ public class PlayerController: MonoBehaviour {
 	}
 	//Use for debugging animator/animation errors
 	void CheckAnimation(){
-		print("Animating");
 	}
 }
