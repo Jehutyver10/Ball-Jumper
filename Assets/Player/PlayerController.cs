@@ -66,12 +66,14 @@ public class PlayerController: MonoBehaviour {
 	void Update(){
 		//if(inControl){
 		//	if(!stunned){
-		//		ControlPlayer();
+				//ControlPlayer();
 
 		//	}
 		//}
 		Pause();
         LockOn();
+        currentButton = GetCurrentButton();
+        currentState = UpdateState(currentState, currentButton);
 
         HandleAnimationLayer();
 	}
@@ -81,18 +83,36 @@ public class PlayerController: MonoBehaviour {
         ///	if(!stunned){
         ///	charCon.Move(movement * speed * Time.deltaTime);
         ///	}
-        currentButton = GetCurrentButton();
 
-        currentState = UpdateState(currentState, currentButton);
-
-
+        switch (currentState)
+        {
+            case PlayerState.Moving:
+                movement = GetMovement();
+                charCon.Move(movement * speed * Time.deltaTime);
+                break;
+            case PlayerState.Dashing:
+                movement = GetMovement();
+                if (CrossPlatformInputManager.GetAxis("Vertical") == 0 && CrossPlatformInputManager.GetAxis("Horizontal") == 0)
+                {
+                   movement = GetMovement() + transform.forward;
+                    
+                }
+                charCon.Move(movement * boostSpeed * Time.deltaTime);
+                break;
+            case PlayerState.Shielding:
+                movement = GetMovement();
+                charCon.Move(movement * speed / 2 * Time.deltaTime);
+                break;
+            default:
+                break;
+        }
         camFollow.AdjustDamping();
 
 		//give the camera some discrepancy
 		pseudo.transform.position =  Vector3.Lerp(pseudo.transform.position, transform.position, Time.deltaTime * pseudoDiscrepancySpeed);
 		//TODO maybe revert back to just updating the position?
 
-		if(moving){
+		if(currentState == PlayerState.Moving || currentState == PlayerState.Dashing){
 			//pseudoTime = Time.time;
 			if(!isLocked){
 				transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(new Vector3(
@@ -124,10 +144,9 @@ public class PlayerController: MonoBehaviour {
         {
             if (state == PlayerState.Moving)
             {
+                Reset();
                 if (button == PlayerButton.Charge)
                 {
-                    movement = GetMovement();
-                    charCon.Move(movement * boostSpeed * Time.deltaTime);
                     return PlayerState.Dashing;
                 
                 } 
@@ -139,14 +158,14 @@ public class PlayerController: MonoBehaviour {
                     Charge();
                     return PlayerState.Charging;
                 }
+
+               
             }
             if (state == PlayerState.Idle || state == PlayerState.Moving)
             {
-
+                Reset();
                 if (button == PlayerButton.Shield)
                 {
-                    movement = GetMovement();
-                    charCon.Move(movement * speed / 2 * Time.deltaTime);
                     return PlayerState.Shielding;
                 }
                 else if (button == PlayerButton.Attack || button == PlayerButton.Sub)
@@ -157,8 +176,6 @@ public class PlayerController: MonoBehaviour {
                 }
                 else if (button == PlayerButton.Move)
                 {
-                    movement = GetMovement();
-                    charCon.Move(movement * speed * Time.deltaTime);
 
                     return PlayerState.Moving;
                 }
@@ -176,12 +193,15 @@ public class PlayerController: MonoBehaviour {
                     ChargeAttack();
                     return PlayerState.Attacking;
                 }
-                else if (button == PlayerButton.NONE)
+                else if (button != PlayerButton.Charge) 
                 {
+                    charging = false;
+                    anim.SetBool("Charging", false);
                     return PlayerState.Idle;
                 }
                 else
                 {
+                    Charge();
                     return PlayerState.Charging;
                 }
             }
@@ -205,8 +225,6 @@ public class PlayerController: MonoBehaviour {
                 }
                 else
                 {
-                    movement = GetMovement();
-                    charCon.Move(movement * boostSpeed * Time.deltaTime);
 
                     return PlayerState.Dashing;
                 }
@@ -221,8 +239,6 @@ public class PlayerController: MonoBehaviour {
                 else
                 {
                     Shield();
-                    movement = GetMovement();
-                    charCon.Move(movement * speed / 2 * Time.deltaTime);
                     return PlayerState.Shielding;
                 }
             }
@@ -272,6 +288,11 @@ public class PlayerController: MonoBehaviour {
         }
     }
 
+    private void Reset()
+    {
+        anim.SetBool("Charging", false);
+    }
+
     /// <summary>
     /// Returns true if target (tpos) is in melee range, returns false if not
     /// </summary>
@@ -306,15 +327,17 @@ public class PlayerController: MonoBehaviour {
         {
             if (InMeleeRange(transform.position, target.transform.position, meleeRange))
             {
+                print("roger");
                 anim.SetTrigger("Lunge");
                 weapon.damage = weapon.dashDamage;
                 return;
             }
 
         }
+        //currentState = PlayerState.Moving;
+        print("got it");
         anim.SetBool("Locking Blast", true);
-
-
+        LockBlast();
 
     }
 
@@ -380,10 +403,8 @@ public class PlayerController: MonoBehaviour {
         Vector3 newMovement = new Vector3 (moveX, 0, moveZ);
 		anim.SetFloat("Velocity X", moveX);
 		anim.SetFloat("Velocity Z", moveZ);
-        print(moveZ);
 		//translate movement by the rotation along the y axis
 		newMovement = pseudo.transform.TransformDirection(newMovement);
-        print(newMovement.magnitude);
 
         ////		transform.rotation = Quaternion.Euler (0, newY, 0);
         newMovement = new Vector3(newMovement.x, moveY, newMovement.z);
@@ -485,29 +506,32 @@ public class PlayerController: MonoBehaviour {
 
 
 	void Charge(){
-		float boostCheck = CrossPlatformInputManager.GetAxis("Boost");
-		if (boostCheck > 0 && !shielding){//on R2 button press
-			if(!moving){//charge if stationary and not shielding
-				charging = true;
-				anim.SetBool("Charging", true);
-			}else if(!isBoosted && moving && !charging){//boost if moving and not shielding and already boosted
-				camFollow.anim.SetBool("Boosting", true);
-				isBoosted = true;
-				anim.SetBool("Dashing", true);
-				charging = false;
-				speed = boostSpeed;
-			}
-		} else {
-			anim.SetBool("Dashing", false);
-			isBoosted = false;
-			charging = false;
-			anim.SetBool("Charging", false);
-			camFollow.anim.SetBool("Boosting", false);
-			speed = normalSpeed;
-		}
-	}
+        charging = true;
+        anim.SetBool("Charging", true);
 
-	void HandleAnimationLayer(){
+        //float boostCheck = CrossPlatformInputManager.GetAxis("Boost");
+        //if (boostCheck > 0 && !shielding){//on R2 button press
+        //	if(!moving){//charge if stationary and not shielding
+        //		charging = true;
+        //		anim.SetBool("Charging", true);
+        //	}else if(!isBoosted && moving && !charging){//boost if moving and not shielding and already boosted
+        //		camFollow.anim.SetBool("Boosting", true);
+        //		isBoosted = true;
+        //		anim.SetBool("Dashing", true);
+        //		charging = false;
+        //		speed = boostSpeed;
+        //	}
+        //} else {
+        //	anim.SetBool("Dashing", false);
+        //	isBoosted = false;
+        //	charging = false;
+        //	anim.SetBool("Charging", false);
+        //	camFollow.anim.SetBool("Boosting", false);
+        //	speed = normalSpeed;
+        //}
+    }
+
+    void HandleAnimationLayer(){
 		if(isLocked){
 			anim.SetLayerWeight(anim.GetLayerIndex("Not Locked On"), 0);
 			anim.SetLayerWeight(anim.GetLayerIndex("Locked On"), 1);
