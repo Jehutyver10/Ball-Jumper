@@ -2,14 +2,23 @@
 using System.Collections;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour {
-	public GameObject enemy;
+    public static GameManager main;
+    public GameObject enemy;
 	public HealthText enemyText;
 	public bool paused = false;
 	public Text subWeaponMenu;
-	// Use this for initialization
-	void Start () {
+    public List<Enemy> Enemies;
+    // Use this for initialization
+
+    private void Awake()
+    {
+        main = this;
+        Enemies = new List<Enemy>();
+    }
+    void Start () {
 	
 	}
 	

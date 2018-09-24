@@ -19,6 +19,10 @@ public class Health : MonoBehaviour {
 	public void TakeDamage(float damage, bool knockback = false){
 		health -= damage;
 		if(health <= 0f){
+            if (GetComponent<Enemy>())
+            {
+                GameManager.main.Enemies.Remove(GetComponent<Enemy>());
+            }
 			Destroy(gameObject);
 		}
 		if(GetComponent<Animator>()){

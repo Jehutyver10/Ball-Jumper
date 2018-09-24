@@ -15,9 +15,13 @@ public class PlayerIdle : StateMachineBehaviour {
 		player.isLastAttack = false;
         player.currentState = PlayerController.PlayerState.Moving;
   		animator.applyRootMotion = true;
-        
-		//this is the only way I could think to get the weapon renderer, weapon collider, and weapon trail to work for the last attack. don't ask me why.
-		weapon = animator.GetComponentInChildren<Weapon>(); //finds the player's weapon
+        animator.SetInteger("Melee Count", 0);
+        animator.ResetTrigger("Melee Up");
+        animator.ResetTrigger("Melee Down");
+
+
+        //this is the only way I could think to get the weapon renderer, weapon collider, and weapon trail to work for the last attack. don't ask me why.
+        weapon = animator.GetComponentInChildren<Weapon>(); //finds the player's weapon
 		weaponTrail = weapon.transform.Find("Player Weapon Trail").gameObject;
 
 		weaponTrail.SetActive(false);

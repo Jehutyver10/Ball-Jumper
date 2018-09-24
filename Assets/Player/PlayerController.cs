@@ -13,6 +13,10 @@ public class PlayerController: MonoBehaviour {
 	private float boostSpeed, normalSpeed, checkLock, lockOffTime, newLockTime; 
 	private CharacterController charCon;
 	private int targeter;
+    [SerializeField]
+    private int meleeComboCounter;
+    [SerializeField]
+    private float meleeComboTimer = 0;
 	private Transform hand;
 	private GameObject[] targets;
 	private Weapon weapon;
@@ -39,6 +43,7 @@ public class PlayerController: MonoBehaviour {
 		pseudo = new GameObject("Pseudoplayer").AddComponent<PseudoPlayer>();
 	}
 	void Start (){
+        meleeComboCounter = 0;
 		rb = GetComponent<Rigidbody>();
 		//pseudoTime = Time.time;
 		particles = GetComponentInChildren<ParticleSystem>();
@@ -164,19 +169,35 @@ public class PlayerController: MonoBehaviour {
             if (state == PlayerState.Idle || state == PlayerState.Moving)
             {
                 Reset();
+                if (meleeComboCounter > 0)
+                {
+                    meleeComboTimer += Time.deltaTime;
+                    if (meleeComboTimer > 1)
+                    {
+                        meleeComboCounter = 0;
+                        meleeComboTimer = 0;
+                    }
+                }
                 if (button == PlayerButton.Shield)
                 {
                     return PlayerState.Shielding;
                 }
-                else if (button == PlayerButton.Attack || button == PlayerButton.Sub)
+                else if (button == PlayerButton.Attack)
                 {
                     NormalAttack();
                     return PlayerState.Attacking;
 
                 }
+                else if(meleeComboCounter == 3 && Input.GetAxis("Altitude") != 0)
+                {
+                    NormalAttack();
+                    return PlayerState.Attacking;
+
+
+                }
                 else if (button == PlayerButton.Move)
                 {
-
+                    
                     return PlayerState.Moving;
                 }
                 else
@@ -311,9 +332,34 @@ public class PlayerController: MonoBehaviour {
     {
         if (target)
         {
-            if(InMeleeRange(transform.position, target.transform.position, meleeRange))
+            if (InMeleeRange(transform.position, target.transform.position, meleeRange))
             {
-                anim.SetTrigger("Begin Melee Combo");
+                meleeComboCounter = Mathf.Clamp(meleeComboCounter + 1, 0, 4);
+
+
+                //print(Input.GetAxis("Altitude"));
+                print(meleeComboCounter);
+                
+                if (Input.GetAxis("Altitude") >0 && meleeComboCounter == 4)
+                {
+                    anim.SetTrigger("Melee Up");
+                }
+                else if (Input.GetAxis("Altitude") < 0 && meleeComboCounter == 4)
+                {
+                    anim.SetTrigger("Melee Down");
+                }
+                else
+                {
+                    anim.SetInteger("Melee Count", meleeComboCounter);
+                   
+                }
+
+                if (meleeComboCounter == 4)
+                {
+                    meleeComboCounter = 0;
+                    meleeComboTimer = 1;
+                }
+
                 weapon.damage = weapon.comboDamage;
                 return;
             }
@@ -334,10 +380,11 @@ public class PlayerController: MonoBehaviour {
             }
 
         }
-        //currentState = PlayerState.Moving;
+        currentState = PlayerState.Moving;
         print("got it");
-        anim.SetBool("Locking Blast", true);
-        LockBlast();
+        //anim.SetBool("Locking Blast", true);
+        StartCoroutine(LockBlast());
+        
 
     }
 
@@ -793,21 +840,24 @@ public class PlayerController: MonoBehaviour {
             canAttack = true;
 		}
 	}
-	public void LockBlast(){
-		Enemy[] Enemies = GameObject.FindObjectsOfType<Enemy>();
-		if(CrossPlatformInputManager.GetButton("Attack")){
-			foreach(Enemy enemy in Enemies){
-				if(enemy.canBeHomedInOn){
+	public IEnumerator LockBlast(){
+        while (CrossPlatformInputManager.GetButton("Attack")) {
 
-				//TODO make some kind of UI lock-on thing
-				}
-			}
-		}
-		else if(CrossPlatformInputManager.GetButtonUp("Attack")){
-			anim.SetBool("Locking Blast", false);
-			ShootBlast(Enemies);
 
-		}
+            currentState = PlayerState.Moving;
+            foreach (Enemy enemy in GameManager.main.Enemies) {
+                if (enemy.canBeHomedInOn) {
+
+                    //TODO make some kind of UI lock-on thing
+                }
+            }
+            yield return null;
+        }
+
+        anim.SetTrigger("Shoot Blast");
+        ShootBlast(GameManager.main.Enemies.ToArray());
+
+		
 	}
 
 	void ShootBlast(Enemy[] EnemyArray){
@@ -828,7 +878,7 @@ public class PlayerController: MonoBehaviour {
 			shot.transform.Translate(Vector3.left * 2);
 			blasts.Add(shot.GetComponent<Blast>());
 		}
-		if(lockableEnemies.Count < blasts.Count && lockableEnemies.Count != 0){//have multiple blasts on enemies if blsts outnumber enemies
+		if(lockableEnemies.Count < blasts.Count && lockableEnemies.Count != 0){//have multiple blasts on enemies if blasts outnumber enemies
 			for(int i = 0; i < blasts.Count; i++){
 				blasts[i].setTarget(lockableEnemies[i%lockableEnemies.Count]);
 			}

@@ -37,6 +37,7 @@ public class Enemy : LockableTarget {
 		health = GetComponent<Health>();
 		weapon = GetComponentInChildren<EnemyWeapon>();
 		pseudo = GetComponentInChildren<PseudoEnemy>();
+        GameManager.main.Enemies.Add(this);
 		//StartCoroutine ("Idle");
 	}
 

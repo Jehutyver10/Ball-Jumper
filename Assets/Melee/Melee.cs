@@ -40,36 +40,37 @@ public class Melee : StateMachineBehaviour {
 			weapon.knockback = true;
 		}
 
-		if(isCombo){
-			player.penultimateAttack = true;
-			if(!isLastHit){
-				if(isPenultimateHit){
-					if(Mathf.RoundToInt(CrossPlatformInputManager.GetAxis("Altitude")) > 0 && canAttack){
+		//if(isCombo){
+		//	player.penultimateAttack = true;
+		//	if(!isLastHit){
+		//		if(isPenultimateHit){
+		//			if(Mathf.RoundToInt(CrossPlatformInputManager.GetAxis("Altitude")) > 0 && canAttack){
 						
-						animator.SetTrigger("Upswing");
-						canAttack = false;
+		//				animator.SetTrigger("Upswing");
+		//				canAttack = false;
 
-					}else if(Mathf.RoundToInt(CrossPlatformInputManager.GetAxis("Altitude")) < 0 && canAttack){
-						animator.SetTrigger("Downswing");
-						canAttack = false;
+		//			}else if(Mathf.RoundToInt(CrossPlatformInputManager.GetAxis("Altitude")) < 0 && canAttack){
+		//				animator.SetTrigger("Downswing");
+		//				canAttack = false;
 
-					}
+		//			}
 
-				}
-				if(CrossPlatformInputManager.GetButtonDown("Attack") && canAttack){
-					animator.SetTrigger("Continue Combo");
-					canAttack = false;
-				}
-			}
+		//		}
+		//		if(CrossPlatformInputManager.GetButtonDown("Attack") && canAttack){
+		//			animator.SetTrigger("Continue Combo");
+		//			canAttack = false;
+		//		}
+		//	}
 
-		}
-			animator.ResetTrigger("Begin Melee Combo");
+		//}
+		//	animator.ResetTrigger("Begin Melee Combo");
 
 	}
 
 	// OnStateExit is called when a transition ends and the state machine finishes evaluating this state
 	override public void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
 
+        player.currentState = PlayerController.PlayerState.Moving;
 		canAttack = true;
 		player.penultimateAttack = false;
 		weapon.knockback = false;
