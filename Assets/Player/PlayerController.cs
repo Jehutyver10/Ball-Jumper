@@ -172,7 +172,7 @@ public class PlayerController: MonoBehaviour {
                 if (meleeComboCounter > 0)
                 {
                     meleeComboTimer += Time.deltaTime;
-                    if (meleeComboTimer > 1)
+                    if (meleeComboTimer > 0.5f)
                     {
                         meleeComboCounter = 0;
                         meleeComboTimer = 0;
@@ -182,11 +182,26 @@ public class PlayerController: MonoBehaviour {
                 {
                     return PlayerState.Shielding;
                 }
-                else if (button == PlayerButton.Attack)
+                else if (Input.GetButtonDown("Attack"))
+                
                 {
+                    
                     NormalAttack();
-                    return PlayerState.Attacking;
-
+                    if(target)
+                    {
+                        if (InMeleeRange(transform.position, target.transform.position, meleeRange))
+                        {
+                            return PlayerState.Attacking;
+                        }
+                        else
+                        {
+                            return PlayerState.Moving;
+                        }
+                    }
+                    else
+                    {
+                        return PlayerState.Moving;
+                    }
                 }
                 else if(meleeComboCounter == 3 && Input.GetAxis("Altitude") != 0)
                 {
@@ -338,7 +353,7 @@ public class PlayerController: MonoBehaviour {
 
 
                 //print(Input.GetAxis("Altitude"));
-                print(meleeComboCounter);
+                //print(meleeComboCounter);
                 
                 if (Input.GetAxis("Altitude") >0 && meleeComboCounter == 4)
                 {
@@ -357,13 +372,14 @@ public class PlayerController: MonoBehaviour {
                 if (meleeComboCounter == 4)
                 {
                     meleeComboCounter = 0;
-                    meleeComboTimer = 1;
+                    meleeComboTimer = 0;
                 }
 
                 weapon.damage = weapon.comboDamage;
                 return;
             }
         }
+        
         anim.SetTrigger("Shoot Bullet");
     }
 
