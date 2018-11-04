@@ -39,6 +39,10 @@ public class PlayerController: MonoBehaviour {
     public enum PlayerButton { Attack, Charge, Shield, Sub, Move, NONE};
     public PlayerState currentState;
     public PlayerButton currentButton;
+
+    //audio clips
+    public AudioClip normalMeleeSound;
+
     void Awake(){
 		pseudo = new GameObject("Pseudoplayer").AddComponent<PseudoPlayer>();
 	}
@@ -143,6 +147,8 @@ public class PlayerController: MonoBehaviour {
 
 	}
 
+   
+ 
     PlayerState UpdateState(PlayerState state, PlayerButton button)
     {
         if (state != PlayerState.Stunned)
@@ -349,6 +355,7 @@ public class PlayerController: MonoBehaviour {
         {
             if (InMeleeRange(transform.position, target.transform.position, meleeRange))
             {
+                SoundManager.me.Play(normalMeleeSound, pitch:1.5f, point:.3f);
                 meleeComboCounter = Mathf.Clamp(meleeComboCounter + 1, 0, 4);
 
 
@@ -387,6 +394,8 @@ public class PlayerController: MonoBehaviour {
     {
         if (target)
         {
+            SoundManager.me.Play(normalMeleeSound, pitch: 2, point: .3f);
+
             if (InMeleeRange(transform.position, target.transform.position, meleeRange))
             {
                 print("roger");
@@ -408,6 +417,8 @@ public class PlayerController: MonoBehaviour {
     {
         if (target)
         {
+            SoundManager.me.Play(normalMeleeSound, pitch: 1, point: .3f);
+
             if (InMeleeRange(transform.position, target.transform.position, meleeRange))
             {
 

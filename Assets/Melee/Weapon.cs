@@ -4,6 +4,8 @@ using System.Collections;
 public class Weapon : MonoBehaviour {
 	public float damage = 100, comboDamage = 150,dashDamage = 200,  burstDamage = 500, force;
 	public bool active = false, knockback = false, isColliding = false, canClash = false, upswing, downswing;
+    [SerializeField]
+    AudioClip hitSound;
 	// Use this for initialization
 	void Start () {
 		if(GetComponentInParent<PlayerController>()){
@@ -33,6 +35,7 @@ public class Weapon : MonoBehaviour {
 				}
 			}
 			if(col.GetComponentInParent<Health>() && active){
+                
 				col.GetComponentInParent<Health>().TakeDamage(damage);
 				active = false;
 			}
